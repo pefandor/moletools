@@ -1,0 +1,492 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FAQ from '../../components/FAQ.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'pdf-rotate')!;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD'
+  },
+  browserRequirements: 'Requires JavaScript',
+  permissions: 'No special permissions required'
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: tool.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer
+    }
+  }))
+};
+---
+
+<Layout title={tool.metaTitle} description={tool.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <img src="/images/mole/Converter.png" alt="Mole's Tools" class="inline h-14 w-14 mr-2 object-contain" style="vertical-align: -10px;" />
+        <span>Rotate PDF</span>
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400" data-i18n="rpDesc">Rotate PDF pages by 90°, 180°, or 270° clockwise</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+
+      <!-- Drop Zone -->
+      <div
+        id="dropZone"
+        class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center cursor-pointer hover:border-amber-400 dark:hover:border-amber-500 transition-colors"
+      >
+        <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-gray-600 dark:text-gray-400 font-medium" data-i18n="rpUpload">Drag & drop a PDF file here or click to browse</p>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">PDF — max 50MB</p>
+        <input type="file" id="fileInput" accept="application/pdf" class="hidden" />
+      </div>
+
+      <!-- Settings Section -->
+      <div id="settingsSection" class="hidden space-y-5">
+        <!-- File info card -->
+        <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-medium text-gray-900 dark:text-gray-100 truncate" id="fileName">&mdash;</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400" id="fileInfo">&mdash;</p>
+          </div>
+          <button id="changeFileBtn" class="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 font-medium whitespace-nowrap">
+            <span data-i18n="rpChange">Change</span>
+          </button>
+        </div>
+
+        <!-- Rotation selector -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" data-i18n="rpRotation">Rotation</label>
+          <div class="grid grid-cols-3 gap-3" id="rotationButtons">
+            <button type="button" data-rotation="90" class="rotation-btn border-2 rounded-lg p-3 text-center transition-colors border-amber-500 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+              <div class="text-2xl mb-1">&#8635;</div>
+              <div class="text-sm font-medium">90°</div>
+            </button>
+            <button type="button" data-rotation="180" class="rotation-btn border-2 rounded-lg p-3 text-center transition-colors border-gray-300 dark:border-gray-600 hover:border-gray-400">
+              <div class="text-2xl mb-1">&#8693;</div>
+              <div class="text-sm font-medium">180°</div>
+            </button>
+            <button type="button" data-rotation="270" class="rotation-btn border-2 rounded-lg p-3 text-center transition-colors border-gray-300 dark:border-gray-600 hover:border-gray-400">
+              <div class="text-2xl mb-1">&#8634;</div>
+              <div class="text-sm font-medium">270°</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Page selection -->
+        <div>
+          <div class="flex items-center gap-6">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="pageMode" value="all" checked class="text-amber-500 focus:ring-amber-500" />
+              <span class="text-sm text-gray-700 dark:text-gray-300" data-i18n="rpAllPages">All pages</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="pageMode" value="specific" class="text-amber-500 focus:ring-amber-500" />
+              <span class="text-sm text-gray-700 dark:text-gray-300" data-i18n="rpSpecificPages">Specific pages</span>
+            </label>
+          </div>
+
+          <!-- Pages input -->
+          <div id="pagesInputSection" class="hidden mt-3">
+            <input
+              type="text"
+              id="pagesInput"
+              placeholder="1, 3, 5"
+              data-i18n-placeholder="rpPagesPlaceholder"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 text-sm"
+            />
+          </div>
+        </div>
+
+        <!-- Rotate button -->
+        <button id="rotateBtn" class="w-full px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span data-i18n="rpRotateBtn">Rotate PDF</span>
+        </button>
+      </div>
+
+      <!-- Progress -->
+      <div id="progressSection" class="hidden">
+        <div class="space-y-3 py-2">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600 dark:text-gray-400" data-i18n="rpRotating">Rotating...</span>
+            <span class="text-gray-500 dark:text-gray-400" id="progressText"></span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+            <div id="progressBar" class="bg-amber-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div id="resultSection" class="hidden">
+        <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <svg class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="font-medium text-green-800 dark:text-green-200" data-i18n="rpSuccess">Rotation complete!</p>
+            </div>
+            <button id="downloadBtn" class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span data-i18n="rpDownload">Download</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="errorSection" class="hidden">
+        <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div class="flex items-center gap-3">
+            <svg class="w-6 h-6 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-800 dark:text-red-200" id="errorMessage"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <FAQ items={tool.faq} />
+  </div>
+</Layout>
+
+<script is:inline>
+(function() {
+  // ==========================================
+  // API URL
+  // ==========================================
+  var API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:8000'
+    : 'https://api.moletools.dev';
+
+  // ==========================================
+  // State
+  // ==========================================
+  var currentFile = null;
+  var selectedRotation = 90;
+  var pageMode = 'all';
+  var resultBlob = null;
+
+  // ==========================================
+  // DOM Elements
+  // ==========================================
+  var dropZone = document.getElementById('dropZone');
+  var fileInput = document.getElementById('fileInput');
+  var settingsSection = document.getElementById('settingsSection');
+  var fileName = document.getElementById('fileName');
+  var fileInfo = document.getElementById('fileInfo');
+  var changeFileBtn = document.getElementById('changeFileBtn');
+  var rotationButtons = document.getElementById('rotationButtons');
+  var pageModeRadios = document.querySelectorAll('input[name="pageMode"]');
+  var pagesInputSection = document.getElementById('pagesInputSection');
+  var pagesInput = document.getElementById('pagesInput');
+  var rotateBtn = document.getElementById('rotateBtn');
+  var progressSection = document.getElementById('progressSection');
+  var progressBar = document.getElementById('progressBar');
+  var progressText = document.getElementById('progressText');
+  var resultSection = document.getElementById('resultSection');
+  var downloadBtn = document.getElementById('downloadBtn');
+  var errorSection = document.getElementById('errorSection');
+  var errorMessage = document.getElementById('errorMessage');
+
+  // ==========================================
+  // Utilities
+  // ==========================================
+  function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    var k = 1024;
+    var sizes = ['B', 'KB', 'MB', 'GB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function showError(msg) {
+    errorSection.classList.remove('hidden');
+    errorMessage.textContent = msg;
+  }
+
+  function t(key) {
+    if (typeof MoleI18n !== 'undefined') return MoleI18n.t(key);
+    return key;
+  }
+
+  // ==========================================
+  // Drop Zone
+  // ==========================================
+  if (dropZone) {
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropZone.classList.add('border-amber-400', 'dark:border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/10');
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('border-amber-400', 'dark:border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/10');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('border-amber-400', 'dark:border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/10');
+      var files = e.dataTransfer.files;
+      if (files.length > 0 && files[0].type === 'application/pdf') {
+        handleFile(files[0]);
+      }
+    });
+  }
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function() {
+      if (fileInput.files.length > 0) {
+        handleFile(fileInput.files[0]);
+        fileInput.value = '';
+      }
+    });
+  }
+
+  if (changeFileBtn) {
+    changeFileBtn.addEventListener('click', function() { fileInput.click(); });
+  }
+
+  // ==========================================
+  // Handle File
+  // ==========================================
+  function handleFile(file) {
+    if (file.size > 50 * 1024 * 1024) {
+      showError('PDF file is too large. Maximum size is 50MB.');
+      return;
+    }
+
+    if (file.type !== 'application/pdf') {
+      showError('Only PDF files are allowed.');
+      return;
+    }
+
+    currentFile = file;
+    resultBlob = null;
+
+    // Hide results
+    resultSection.classList.add('hidden');
+    errorSection.classList.add('hidden');
+
+    // Show settings
+    settingsSection.classList.remove('hidden');
+    settingsSection.style.animation = 'fadeIn 0.3s ease';
+
+    // File info
+    fileName.textContent = file.name;
+    fileInfo.textContent = formatBytes(file.size);
+  }
+
+  // ==========================================
+  // Rotation Buttons
+  // ==========================================
+  if (rotationButtons) {
+    var rotBtns = rotationButtons.querySelectorAll('.rotation-btn');
+    for (var i = 0; i < rotBtns.length; i++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          selectedRotation = parseInt(btn.getAttribute('data-rotation'));
+
+          // Update styles
+          for (var j = 0; j < rotBtns.length; j++) {
+            rotBtns[j].classList.remove('border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/20', 'text-amber-700', 'dark:text-amber-400');
+            rotBtns[j].classList.add('border-gray-300', 'dark:border-gray-600', 'hover:border-gray-400');
+          }
+          btn.classList.remove('border-gray-300', 'dark:border-gray-600', 'hover:border-gray-400');
+          btn.classList.add('border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/20', 'text-amber-700', 'dark:text-amber-400');
+        });
+      })(rotBtns[i]);
+    }
+  }
+
+  // ==========================================
+  // Page Mode Radio
+  // ==========================================
+  for (var r = 0; r < pageModeRadios.length; r++) {
+    (function(radio) {
+      radio.addEventListener('change', function() {
+        pageMode = radio.value;
+        if (pageMode === 'specific') {
+          pagesInputSection.classList.remove('hidden');
+        } else {
+          pagesInputSection.classList.add('hidden');
+        }
+      });
+    })(pageModeRadios[r]);
+  }
+
+  // ==========================================
+  // Rotate
+  // ==========================================
+  if (rotateBtn) {
+    rotateBtn.addEventListener('click', function() {
+      if (!currentFile) return;
+
+      resultSection.classList.add('hidden');
+      errorSection.classList.add('hidden');
+      progressSection.classList.remove('hidden');
+      rotateBtn.disabled = true;
+
+      // Animate progress bar
+      progressBar.style.width = '0%';
+      var fakeProgress = 0;
+      var progressInterval = setInterval(function() {
+        if (fakeProgress < 85) {
+          fakeProgress += Math.random() * 8;
+          if (fakeProgress > 85) fakeProgress = 85;
+          progressBar.style.width = fakeProgress + '%';
+          progressText.textContent = Math.round(fakeProgress) + '%';
+        }
+      }, 300);
+
+      var formData = new FormData();
+      formData.append('file', currentFile);
+      formData.append('rotation', selectedRotation.toString());
+
+      if (pageMode === 'specific' && pagesInput.value.trim()) {
+        formData.append('pages', pagesInput.value.trim());
+      } else {
+        formData.append('pages', 'all');
+      }
+
+      fetch(API_URL + '/pdf/rotate', {
+        method: 'POST',
+        body: formData
+      })
+      .then(function(response) {
+        if (!response.ok) {
+          return response.json().then(function(data) {
+            throw new Error(data.detail || 'Rotation failed');
+          });
+        }
+        return response.blob();
+      })
+      .then(function(blob) {
+        clearInterval(progressInterval);
+        progressBar.style.width = '100%';
+        progressText.textContent = '100%';
+        resultBlob = blob;
+
+        setTimeout(function() {
+          progressSection.classList.add('hidden');
+          rotateBtn.disabled = false;
+
+          resultSection.classList.remove('hidden');
+          resultSection.style.animation = 'fadeIn 0.3s ease';
+        }, 400);
+      })
+      .catch(function(err) {
+        clearInterval(progressInterval);
+        progressSection.classList.add('hidden');
+        rotateBtn.disabled = false;
+        showError(err.message || 'Rotation failed. Please try again.');
+      });
+    });
+  }
+
+  // ==========================================
+  // Download
+  // ==========================================
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', function() {
+      if (!resultBlob) return;
+      var url = URL.createObjectURL(resultBlob);
+      var a = document.createElement('a');
+      a.href = url;
+      var baseName = currentFile ? currentFile.name.replace(/\.pdf$/i, '') : 'document';
+      a.download = baseName + '_rotated.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // ==========================================
+  // i18n
+  // ==========================================
+  if (typeof MoleI18n !== 'undefined') {
+    MoleI18n.addTranslations('en', {
+      rpDesc: 'Rotate PDF pages by 90\u00B0, 180\u00B0, or 270\u00B0 clockwise',
+      rpUpload: 'Drag & drop a PDF file here or click to browse',
+      rpChange: 'Change',
+      rpRotation: 'Rotation',
+      rpAllPages: 'All pages',
+      rpSpecificPages: 'Specific pages',
+      rpPagesPlaceholder: '1, 3, 5',
+      rpRotateBtn: 'Rotate PDF',
+      rpRotating: 'Rotating...',
+      rpSuccess: 'Rotation complete!',
+      rpDownload: 'Download'
+    });
+
+    MoleI18n.addTranslations('ru', {
+      rpDesc: '\u041F\u043E\u0432\u043E\u0440\u043E\u0442 \u0441\u0442\u0440\u0430\u043D\u0438\u0446 PDF \u043D\u0430 90\u00B0, 180\u00B0 \u0438\u043B\u0438 270\u00B0 \u043F\u043E \u0447\u0430\u0441\u043E\u0432\u043E\u0439 \u0441\u0442\u0440\u0435\u043B\u043A\u0435',
+      rpUpload: '\u041F\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 PDF \u0444\u0430\u0439\u043B \u0441\u044E\u0434\u0430 \u0438\u043B\u0438 \u043D\u0430\u0436\u043C\u0438\u0442\u0435 \u0434\u043B\u044F \u0432\u044B\u0431\u043E\u0440\u0430',
+      rpChange: '\u0421\u043C\u0435\u043D\u0438\u0442\u044C',
+      rpRotation: '\u041F\u043E\u0432\u043E\u0440\u043E\u0442',
+      rpAllPages: '\u0412\u0441\u0435 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u044B',
+      rpSpecificPages: '\u041E\u043F\u0440\u0435\u0434\u0435\u043B\u0451\u043D\u043D\u044B\u0435 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u044B',
+      rpPagesPlaceholder: '1, 3, 5',
+      rpRotateBtn: '\u041F\u043E\u0432\u0435\u0440\u043D\u0443\u0442\u044C PDF',
+      rpRotating: '\u041F\u043E\u0432\u043E\u0440\u043E\u0442...',
+      rpSuccess: '\u041F\u043E\u0432\u043E\u0440\u043E\u0442 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D!',
+      rpDownload: '\u0421\u043A\u0430\u0447\u0430\u0442\u044C'
+    });
+
+    var currentLang = MoleI18n.getCurrentLang();
+    MoleI18n.setLanguage(currentLang);
+  }
+})();
+</script>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

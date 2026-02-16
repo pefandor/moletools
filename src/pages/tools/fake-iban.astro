@@ -1,0 +1,767 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FAQ from '../../components/FAQ.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'fake-iban')!;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD'
+  },
+  browserRequirements: 'Requires JavaScript',
+  permissions: 'No special permissions required'
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: tool.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer
+    }
+  }))
+};
+---
+
+<Layout title={tool.metaTitle} description={tool.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        🏦 <span>Fake IBAN Generator</span>
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400" data-i18n="ibanDesc">Generate realistic fake IBAN numbers for testing and development</p>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+      <div class="flex items-start space-x-3">
+        <span class="text-amber-500 text-xl mt-0.5">⚠️</span>
+        <p class="text-sm text-amber-800 dark:text-amber-200" data-i18n="ibanDisclaimer">
+          These IBANs are fake and for testing purposes only. They follow the correct format and pass MOD 97 validation but do not correspond to real bank accounts. Never use them for actual financial transactions.
+        </p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex space-x-2 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+      <button id="tabGenerate" class="flex-1 px-4 py-2 bg-white dark:bg-gray-600 text-primary-600 dark:text-primary-400 rounded-md font-medium transition-colors shadow-sm">
+        <span data-i18n="ibanTabGenerate">Generate</span>
+      </button>
+      <button id="tabValidate" class="flex-1 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded-md font-medium transition-colors">
+        <span data-i18n="ibanTabValidate">Validate</span>
+      </button>
+    </div>
+
+    <!-- Generate Tab -->
+    <div id="generatePanel" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+      <!-- Country & Count -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" data-i18n="ibanCountry">Country</label>
+          <select id="countrySelect" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100">
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" data-i18n="ibanCount">Count</label>
+          <input
+            type="number"
+            id="ibanCount"
+            value="5"
+            min="1"
+            max="50"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+          />
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="flex flex-wrap items-center gap-4">
+        <label class="flex items-center space-x-2 cursor-pointer">
+          <input type="checkbox" id="formatSpaces" checked class="w-4 h-4 rounded" />
+          <span class="text-sm text-gray-700 dark:text-gray-300" data-i18n="ibanFormatSpaces">Format with spaces</span>
+        </label>
+        <label class="flex items-center space-x-2 cursor-pointer">
+          <input type="checkbox" id="showDetails" checked class="w-4 h-4 rounded" />
+          <span class="text-sm text-gray-700 dark:text-gray-300" data-i18n="ibanShowDetails">Show bank details</span>
+        </label>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex flex-wrap gap-3">
+        <button id="generateBtn" class="px-6 py-2.5 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors font-medium">
+          <span data-i18n="ibanGenerate">Generate IBANs</span>
+        </button>
+        <button id="copyAllBtn" class="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+          <span data-i18n="ibanCopyAll">Copy All</span>
+        </button>
+      </div>
+
+      <!-- Results -->
+      <div id="generateResults" class="space-y-3">
+        <!-- Generated IBANs will appear here -->
+      </div>
+
+      <!-- Country Info -->
+      <div id="countryInfo" class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div>
+            <span class="text-gray-500 dark:text-gray-400" data-i18n="ibanLength">IBAN Length</span>
+            <p class="font-mono font-medium text-gray-900 dark:text-gray-100" id="infoLength">—</p>
+          </div>
+          <div>
+            <span class="text-gray-500 dark:text-gray-400" data-i18n="ibanFormat">BBAN Format</span>
+            <p class="font-mono font-medium text-gray-900 dark:text-gray-100" id="infoFormat">—</p>
+          </div>
+          <div>
+            <span class="text-gray-500 dark:text-gray-400" data-i18n="ibanBankCode">Bank Code</span>
+            <p class="font-mono font-medium text-gray-900 dark:text-gray-100" id="infoBankCode">—</p>
+          </div>
+          <div>
+            <span class="text-gray-500 dark:text-gray-400">BIC/SWIFT</span>
+            <p class="font-mono font-medium text-gray-900 dark:text-gray-100" id="infoBic">—</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validate Tab -->
+    <div id="validatePanel" class="hidden bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" data-i18n="ibanEnterIban">Enter IBAN to validate</label>
+        <div class="flex gap-3">
+          <input
+            type="text"
+            id="validateInput"
+            data-i18n-placeholder="ibanValidatePlaceholder"
+            placeholder="e.g. DE89 3704 0044 0532 0130 00"
+            class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 font-mono"
+          />
+          <button id="validateBtn" class="px-6 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors font-medium whitespace-nowrap">
+            <span data-i18n="ibanValidateBtn">Validate</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Validation Result -->
+      <div id="validationResult" class="hidden">
+        <!-- Result will appear here -->
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <FAQ items={tool.faq} />
+  </div>
+</Layout>
+
+<script is:inline>
+(function() {
+  // ==========================================
+  // IBAN Country Database (30+ countries)
+  // ==========================================
+  var COUNTRIES = {
+    DE: { name: 'Germany', len: 22, bban: '18n', bankLen: 8, accLen: 10, bic: 'DEUTDEDB', bankName: 'Deutsche Bank' },
+    GB: { name: 'United Kingdom', len: 22, bban: '4a14n', bankLen: 4, accLen: 14, bic: 'NWBKGB2L', bankName: 'NatWest', alpha: true },
+    FR: { name: 'France', len: 27, bban: '10n11c2n', bankLen: 5, branchLen: 5, accLen: 11, keyLen: 2, bic: 'BNPAFRPP', bankName: 'BNP Paribas' },
+    ES: { name: 'Spain', len: 24, bban: '20n', bankLen: 4, branchLen: 4, keyLen: 2, accLen: 10, bic: 'BBVAESMM', bankName: 'BBVA' },
+    IT: { name: 'Italy', len: 27, bban: '1a22n', checkChar: true, bankLen: 5, branchLen: 5, accLen: 12, bic: 'BCITITMM', bankName: 'Intesa Sanpaolo' },
+    NL: { name: 'Netherlands', len: 18, bban: '4a10n', bankLen: 4, accLen: 10, bic: 'INGBNL2A', bankName: 'ING Bank', alpha: true },
+    BE: { name: 'Belgium', len: 16, bban: '12n', bankLen: 3, accLen: 7, keyLen: 2, bic: 'GEBABEBB', bankName: 'BNP Paribas Fortis' },
+    AT: { name: 'Austria', len: 20, bban: '16n', bankLen: 5, accLen: 11, bic: 'BKAUATWW', bankName: 'Bank Austria' },
+    CH: { name: 'Switzerland', len: 21, bban: '5n12c', bankLen: 5, accLen: 12, bic: 'UBSWCHZH', bankName: 'UBS' },
+    PL: { name: 'Poland', len: 28, bban: '24n', bankLen: 8, accLen: 16, bic: 'PKOPPLPW', bankName: 'PKO Bank' },
+    PT: { name: 'Portugal', len: 25, bban: '21n', bankLen: 4, branchLen: 4, accLen: 11, keyLen: 2, bic: 'CGDIPTPL', bankName: 'Caixa Geral' },
+    SE: { name: 'Sweden', len: 24, bban: '20n', bankLen: 3, accLen: 17, bic: 'ESSESESS', bankName: 'SEB' },
+    NO: { name: 'Norway', len: 15, bban: '11n', bankLen: 4, accLen: 6, keyLen: 1, bic: 'DNBANOKKXXX', bankName: 'DNB' },
+    DK: { name: 'Denmark', len: 18, bban: '14n', bankLen: 4, accLen: 10, bic: 'DABADKKK', bankName: 'Danske Bank' },
+    FI: { name: 'Finland', len: 18, bban: '14n', bankLen: 3, accLen: 11, bic: 'NDEAFIHH', bankName: 'Nordea' },
+    IE: { name: 'Ireland', len: 22, bban: '4a14n', bankLen: 4, accLen: 14, bic: 'AABORIEG', bankName: 'AIB', alpha: true },
+    LU: { name: 'Luxembourg', len: 20, bban: '3n13c', bankLen: 3, accLen: 13, bic: 'BABORLLU', bankName: 'Banque Raiffeisen' },
+    GR: { name: 'Greece', len: 27, bban: '7n16c', bankLen: 3, branchLen: 4, accLen: 16, bic: 'ETHNGRAA', bankName: 'National Bank of Greece' },
+    CZ: { name: 'Czech Republic', len: 24, bban: '20n', bankLen: 4, accLen: 16, bic: 'KOMBCZPP', bankName: 'Komercni Banka' },
+    HU: { name: 'Hungary', len: 28, bban: '24n', bankLen: 3, branchLen: 4, accLen: 16, keyLen: 1, bic: 'OTPHUHB', bankName: 'OTP Bank' },
+    RO: { name: 'Romania', len: 24, bban: '4a16c', bankLen: 4, accLen: 16, bic: 'RNCBROBU', bankName: 'BCR', alpha: true },
+    BG: { name: 'Bulgaria', len: 22, bban: '4a2n8c', bankLen: 4, accLen: 14, bic: 'UNCRBGSF', bankName: 'UniCredit', alpha: true },
+    HR: { name: 'Croatia', len: 21, bban: '17n', bankLen: 7, accLen: 10, bic: 'ZABAHR2X', bankName: 'Zagrebacka Banka' },
+    SK: { name: 'Slovakia', len: 24, bban: '20n', bankLen: 4, accLen: 16, bic: 'TATRSKBX', bankName: 'Tatra Banka' },
+    SI: { name: 'Slovenia', len: 19, bban: '15n', bankLen: 2, branchLen: 3, accLen: 8, keyLen: 2, bic: 'LJBASI2X', bankName: 'NLB' },
+    LT: { name: 'Lithuania', len: 20, bban: '16n', bankLen: 5, accLen: 11, bic: 'HABALT22', bankName: 'SEB Bankas' },
+    LV: { name: 'Latvia', len: 21, bban: '4a13c', bankLen: 4, accLen: 13, bic: 'HABALV22', bankName: 'Swedbank', alpha: true },
+    EE: { name: 'Estonia', len: 20, bban: '16n', bankLen: 2, accLen: 13, keyLen: 1, bic: 'HABAEE2X', bankName: 'Swedbank' },
+    CY: { name: 'Cyprus', len: 28, bban: '8n16c', bankLen: 3, branchLen: 5, accLen: 16, bic: 'BCYPCY2N', bankName: 'Bank of Cyprus' },
+    MT: { name: 'Malta', len: 31, bban: '4a5n18c', bankLen: 4, branchLen: 5, accLen: 18, bic: 'VALLMTMT', bankName: 'Bank of Valletta', alpha: true },
+    SA: { name: 'Saudi Arabia', len: 24, bban: '2n18c', bankLen: 2, accLen: 18, bic: 'RIABORIY', bankName: 'Al Rajhi Bank' },
+    AE: { name: 'UAE', len: 23, bban: '3n16n', bankLen: 3, accLen: 16, bic: 'EABORUHA', bankName: 'Emirates NBD' },
+    TR: { name: 'Turkey', len: 26, bban: '5n1c16c', bankLen: 5, accLen: 17, bic: 'ISBKTRIS', bankName: 'Isbank' },
+    UA: { name: 'Ukraine', len: 29, bban: '6n19n', bankLen: 6, accLen: 19, bic: 'PABORUAX', bankName: 'PrivatBank' },
+    IS: { name: 'Iceland', len: 26, bban: '22n', bankLen: 4, accLen: 18, bic: 'LANBIS21', bankName: 'Landsbankinn' },
+    AL: { name: 'Albania', len: 28, bban: '8n16c', bankLen: 3, branchLen: 5, accLen: 16, bic: 'NCBAALTX', bankName: 'National Commercial Bank' },
+    RS: { name: 'Serbia', len: 22, bban: '18n', bankLen: 3, accLen: 13, keyLen: 2, bic: 'COBADEFF', bankName: 'Komercijalna Banka' },
+    MD: { name: 'Moldova', len: 24, bban: '2c18c', bankLen: 2, accLen: 18, bic: 'AGRNMD2X', bankName: 'Moldova Agroindbank' },
+    MC: { name: 'Monaco', len: 27, bban: '10n11c2n', bankLen: 5, branchLen: 5, accLen: 11, keyLen: 2, bic: 'CMCIFRPA', bankName: 'Credit Mutuel' }
+  };
+
+  // ==========================================
+  // MOD 97 Calculation (ISO 7064)
+  // ==========================================
+  function mod97(numStr) {
+    var remainder = 0;
+    for (var i = 0; i < numStr.length; i++) {
+      remainder = (remainder * 10 + parseInt(numStr[i], 10)) % 97;
+    }
+    return remainder;
+  }
+
+  function letterToDigit(ch) {
+    return (ch.charCodeAt(0) - 55).toString();
+  }
+
+  function ibanToNumericString(iban) {
+    var cleaned = iban.replace(/\s/g, '').toUpperCase();
+    // Move first 4 chars to end
+    var rearranged = cleaned.substring(4) + cleaned.substring(0, 4);
+    var numeric = '';
+    for (var i = 0; i < rearranged.length; i++) {
+      var ch = rearranged[i];
+      if (ch >= 'A' && ch <= 'Z') {
+        numeric += letterToDigit(ch);
+      } else {
+        numeric += ch;
+      }
+    }
+    return numeric;
+  }
+
+  function calculateCheckDigits(countryCode, bban) {
+    var tempIban = countryCode + '00' + bban;
+    var numStr = ibanToNumericString(tempIban);
+    var remainder = mod97(numStr);
+    var checkDigits = 98 - remainder;
+    return (checkDigits < 10 ? '0' : '') + checkDigits;
+  }
+
+  function validateIBAN(iban) {
+    var cleaned = iban.replace(/\s/g, '').toUpperCase();
+    if (cleaned.length < 5) return false;
+    var numStr = ibanToNumericString(cleaned);
+    return mod97(numStr) === 1;
+  }
+
+  // ==========================================
+  // Random Generators
+  // ==========================================
+  function randomDigits(len) {
+    var result = '';
+    for (var i = 0; i < len; i++) {
+      result += Math.floor(Math.random() * 10).toString();
+    }
+    return result;
+  }
+
+  function randomUpperLetters(len) {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var result = '';
+    for (var i = 0; i < len; i++) {
+      result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return result;
+  }
+
+  function randomAlphaNum(len) {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    var result = '';
+    for (var i = 0; i < len; i++) {
+      result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return result;
+  }
+
+  // ==========================================
+  // BBAN Generation per country
+  // ==========================================
+  function generateBBAN(code) {
+    var c = COUNTRIES[code];
+    if (!c) return '';
+    var bbanLen = c.len - 4; // Total IBAN length minus 4 (country code + check digits)
+
+    switch (code) {
+      case 'DE': return randomDigits(8) + randomDigits(10);
+      case 'GB': return randomUpperLetters(4) + randomDigits(6) + randomDigits(8);
+      case 'FR': return randomDigits(5) + randomDigits(5) + randomAlphaNum(11) + randomDigits(2);
+      case 'ES': return randomDigits(4) + randomDigits(4) + randomDigits(2) + randomDigits(10);
+      case 'IT': return randomUpperLetters(1) + randomDigits(5) + randomDigits(5) + randomAlphaNum(12);
+      case 'NL': return randomUpperLetters(4) + randomDigits(10);
+      case 'BE': return randomDigits(3) + randomDigits(7) + randomDigits(2);
+      case 'AT': return randomDigits(5) + randomDigits(11);
+      case 'CH': return randomDigits(5) + randomAlphaNum(12);
+      case 'PL': return randomDigits(8) + randomDigits(16);
+      case 'PT': return randomDigits(4) + randomDigits(4) + randomDigits(11) + randomDigits(2);
+      case 'SE': return randomDigits(3) + randomDigits(17);
+      case 'NO': return randomDigits(4) + randomDigits(6) + randomDigits(1);
+      case 'DK': return randomDigits(4) + randomDigits(10);
+      case 'FI': return randomDigits(3) + randomDigits(11);
+      case 'IE': return randomUpperLetters(4) + randomDigits(6) + randomDigits(8);
+      case 'LU': return randomDigits(3) + randomAlphaNum(13);
+      case 'GR': return randomDigits(3) + randomDigits(4) + randomAlphaNum(16);
+      case 'CZ': return randomDigits(4) + randomDigits(16);
+      case 'HU': return randomDigits(3) + randomDigits(4) + randomDigits(1) + randomDigits(15) + randomDigits(1);
+      case 'RO': return randomUpperLetters(4) + randomAlphaNum(16);
+      case 'BG': return randomUpperLetters(4) + randomDigits(2) + randomAlphaNum(8) + randomDigits(4);
+      case 'HR': return randomDigits(7) + randomDigits(10);
+      case 'SK': return randomDigits(4) + randomDigits(16);
+      case 'SI': return randomDigits(2) + randomDigits(3) + randomDigits(8) + randomDigits(2);
+      case 'LT': return randomDigits(5) + randomDigits(11);
+      case 'LV': return randomUpperLetters(4) + randomAlphaNum(13);
+      case 'EE': return randomDigits(2) + randomDigits(2) + randomDigits(11) + randomDigits(1);
+      case 'CY': return randomDigits(3) + randomDigits(5) + randomAlphaNum(16);
+      case 'MT': return randomUpperLetters(4) + randomDigits(5) + randomAlphaNum(18);
+      case 'SA': return randomDigits(2) + randomAlphaNum(18);
+      case 'AE': return randomDigits(3) + randomDigits(16);
+      case 'TR': return randomDigits(5) + randomAlphaNum(1) + randomAlphaNum(16);
+      case 'UA': return randomDigits(6) + randomDigits(19);
+      case 'IS': return randomDigits(4) + randomDigits(18);
+      case 'AL': return randomDigits(3) + randomDigits(5) + randomAlphaNum(16);
+      case 'RS': return randomDigits(3) + randomDigits(13) + randomDigits(2);
+      case 'MD': return randomUpperLetters(2) + randomAlphaNum(18);
+      case 'MC': return randomDigits(5) + randomDigits(5) + randomAlphaNum(11) + randomDigits(2);
+      default:
+        return randomDigits(bbanLen);
+    }
+  }
+
+  // ==========================================
+  // Generate IBAN
+  // ==========================================
+  function generateIBAN(countryCode) {
+    var bban = generateBBAN(countryCode);
+    var checkDigits = calculateCheckDigits(countryCode, bban);
+    return countryCode + checkDigits + bban;
+  }
+
+  function formatIBAN(iban, withSpaces) {
+    if (!withSpaces) return iban;
+    return iban.replace(/(.{4})/g, '$1 ').trim();
+  }
+
+  // ==========================================
+  // Parse/Breakdown IBAN
+  // ==========================================
+  function breakdownIBAN(iban) {
+    var cleaned = iban.replace(/\s/g, '').toUpperCase();
+    var cc = cleaned.substring(0, 2);
+    var check = cleaned.substring(2, 4);
+    var bban = cleaned.substring(4);
+    var country = COUNTRIES[cc];
+
+    var result = {
+      countryCode: cc,
+      checkDigits: check,
+      bban: bban,
+      countryName: country ? country.name : 'Unknown',
+      valid: validateIBAN(cleaned),
+      length: cleaned.length,
+      expectedLength: country ? country.len : null,
+      bankCode: '',
+      branchCode: '',
+      accountNumber: '',
+      bic: country ? country.bic : '',
+      bankName: country ? country.bankName : ''
+    };
+
+    if (country) {
+      var pos = 0;
+      result.bankCode = bban.substring(pos, pos + (country.bankLen || 0));
+      pos += (country.bankLen || 0);
+      if (country.branchLen) {
+        result.branchCode = bban.substring(pos, pos + country.branchLen);
+        pos += country.branchLen;
+      }
+      if (country.checkChar) {
+        pos += 1; // Skip check character (e.g., Italy)
+      }
+      if (country.keyLen && !country.branchLen) {
+        // Key digits after bank code but before account
+      }
+      result.accountNumber = bban.substring(pos);
+    }
+
+    return result;
+  }
+
+  // ==========================================
+  // DOM Elements
+  // ==========================================
+  var tabGenerate = document.getElementById('tabGenerate');
+  var tabValidate = document.getElementById('tabValidate');
+  var generatePanel = document.getElementById('generatePanel');
+  var validatePanel = document.getElementById('validatePanel');
+  var countrySelect = document.getElementById('countrySelect');
+  var ibanCountInput = document.getElementById('ibanCount');
+  var formatSpaces = document.getElementById('formatSpaces');
+  var showDetails = document.getElementById('showDetails');
+  var generateBtn = document.getElementById('generateBtn');
+  var copyAllBtn = document.getElementById('copyAllBtn');
+  var generateResults = document.getElementById('generateResults');
+  var validateInput = document.getElementById('validateInput');
+  var validateBtn = document.getElementById('validateBtn');
+  var validationResult = document.getElementById('validationResult');
+  var infoLength = document.getElementById('infoLength');
+  var infoFormat = document.getElementById('infoFormat');
+  var infoBankCode = document.getElementById('infoBankCode');
+  var infoBic = document.getElementById('infoBic');
+
+  // ==========================================
+  // Tab Switching
+  // ==========================================
+  if (tabGenerate) {
+    tabGenerate.addEventListener('click', function() {
+      tabGenerate.className = 'flex-1 px-4 py-2 bg-white dark:bg-gray-600 text-primary-600 dark:text-primary-400 rounded-md font-medium transition-colors shadow-sm';
+      tabValidate.className = 'flex-1 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded-md font-medium transition-colors';
+      generatePanel.classList.remove('hidden');
+      validatePanel.classList.add('hidden');
+    });
+  }
+
+  if (tabValidate) {
+    tabValidate.addEventListener('click', function() {
+      tabValidate.className = 'flex-1 px-4 py-2 bg-white dark:bg-gray-600 text-primary-600 dark:text-primary-400 rounded-md font-medium transition-colors shadow-sm';
+      tabGenerate.className = 'flex-1 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded-md font-medium transition-colors';
+      validatePanel.classList.remove('hidden');
+      generatePanel.classList.add('hidden');
+    });
+  }
+
+  // ==========================================
+  // Populate Country Select
+  // ==========================================
+  function populateCountrySelect() {
+    if (!countrySelect) return;
+    var sorted = Object.keys(COUNTRIES).sort(function(a, b) {
+      return COUNTRIES[a].name.localeCompare(COUNTRIES[b].name);
+    });
+
+    sorted.forEach(function(code) {
+      var opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = COUNTRIES[code].name + ' (' + code + ')';
+      countrySelect.appendChild(opt);
+    });
+
+    // Default to Germany
+    countrySelect.value = 'DE';
+    updateCountryInfo('DE');
+  }
+
+  // ==========================================
+  // Update Country Info
+  // ==========================================
+  function updateCountryInfo(code) {
+    var c = COUNTRIES[code];
+    if (!c) return;
+    if (infoLength) infoLength.textContent = c.len + ' chars';
+    if (infoFormat) infoFormat.textContent = c.bban;
+    if (infoBankCode) infoBankCode.textContent = c.bankLen + ' digits';
+    if (infoBic) infoBic.textContent = c.bic;
+  }
+
+  if (countrySelect) {
+    countrySelect.addEventListener('change', function() {
+      updateCountryInfo(countrySelect.value);
+    });
+  }
+
+  // ==========================================
+  // Generate IBANs
+  // ==========================================
+  var generatedIBANs = [];
+
+  function doGenerate() {
+    if (!generateResults) return;
+    var code = countrySelect ? countrySelect.value : 'DE';
+    var count = Math.min(Math.max(parseInt(ibanCountInput ? ibanCountInput.value : '5') || 5, 1), 50);
+    var withSpaces = formatSpaces ? formatSpaces.checked : true;
+    var details = showDetails ? showDetails.checked : true;
+
+    generatedIBANs = [];
+    generateResults.innerHTML = '';
+
+    for (var i = 0; i < count; i++) {
+      var iban = generateIBAN(code);
+      generatedIBANs.push(iban);
+      var formatted = formatIBAN(iban, withSpaces);
+      var breakdown = breakdownIBAN(iban);
+
+      var row = document.createElement('div');
+      row.className = 'flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg group hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
+      row.style.animation = 'fadeIn 0.3s ease ' + (i * 0.05) + 's both';
+
+      var left = document.createElement('div');
+      left.className = 'flex-1 min-w-0';
+
+      var ibanLine = document.createElement('div');
+      ibanLine.className = 'font-mono text-sm md:text-base font-medium text-gray-900 dark:text-gray-100 break-all';
+      ibanLine.textContent = formatted;
+      left.appendChild(ibanLine);
+
+      if (details) {
+        var detailLine = document.createElement('div');
+        detailLine.className = 'text-xs text-gray-500 dark:text-gray-400 mt-1 flex flex-wrap gap-x-3';
+        detailLine.innerHTML =
+          '<span>🏦 ' + escapeHtml(breakdown.bankName) + '</span>' +
+          '<span>BIC: ' + escapeHtml(breakdown.bic) + '</span>' +
+          (breakdown.bankCode ? '<span>Bank: ' + escapeHtml(breakdown.bankCode) + '</span>' : '') +
+          (breakdown.branchCode ? '<span>Branch: ' + escapeHtml(breakdown.branchCode) + '</span>' : '');
+        left.appendChild(detailLine);
+      }
+
+      row.appendChild(left);
+
+      var copyBtn = document.createElement('button');
+      copyBtn.className = 'ml-3 p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex-shrink-0';
+      copyBtn.title = 'Copy';
+      copyBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+      (function(ibanText, btn) {
+        btn.addEventListener('click', function() {
+          navigator.clipboard.writeText(ibanText).then(function() {
+            btn.innerHTML = '<svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+            setTimeout(function() {
+              btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+            }, 2000);
+          });
+        });
+      })(iban, copyBtn);
+
+      row.appendChild(copyBtn);
+      generateResults.appendChild(row);
+    }
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  if (generateBtn) {
+    generateBtn.addEventListener('click', doGenerate);
+  }
+
+  // ==========================================
+  // Copy All
+  // ==========================================
+  if (copyAllBtn) {
+    copyAllBtn.addEventListener('click', function() {
+      if (generatedIBANs.length === 0) return;
+      var withSpaces = formatSpaces ? formatSpaces.checked : true;
+      var text = generatedIBANs.map(function(iban) {
+        return formatIBAN(iban, withSpaces);
+      }).join('\n');
+
+      navigator.clipboard.writeText(text).then(function() {
+        var span = copyAllBtn.querySelector('span');
+        var orig = span ? span.textContent : 'Copy All';
+        if (span) span.textContent = 'Copied!';
+        copyAllBtn.classList.add('bg-green-700');
+        setTimeout(function() {
+          if (span) span.textContent = orig;
+          copyAllBtn.classList.remove('bg-green-700');
+        }, 2000);
+      });
+    });
+  }
+
+  // ==========================================
+  // Validate IBAN
+  // ==========================================
+  function doValidate() {
+    if (!validateInput || !validationResult) return;
+    var raw = validateInput.value.trim();
+    if (!raw) return;
+
+    var cleaned = raw.replace(/\s/g, '').toUpperCase();
+    var isValid = validateIBAN(cleaned);
+    var breakdown = breakdownIBAN(cleaned);
+
+    validationResult.classList.remove('hidden');
+
+    var cc = cleaned.substring(0, 2);
+    var country = COUNTRIES[cc];
+    var lengthMatch = country ? cleaned.length === country.len : false;
+
+    var html = '';
+
+    // Status Badge
+    if (isValid && lengthMatch) {
+      html += '<div class="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg mb-4">';
+      html += '<svg class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+      html += '<div><p class="font-medium text-green-800 dark:text-green-200" data-i18n="ibanValid">Valid IBAN</p>';
+      html += '<p class="text-sm text-green-600 dark:text-green-400">' + escapeHtml(breakdown.countryName) + '</p></div></div>';
+    } else {
+      html += '<div class="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg mb-4">';
+      html += '<svg class="w-6 h-6 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+      html += '<div><p class="font-medium text-red-800 dark:text-red-200" data-i18n="ibanInvalid">Invalid IBAN</p>';
+      var reasons = [];
+      if (!country) reasons.push('Unknown country code: ' + escapeHtml(cc));
+      if (country && !lengthMatch) reasons.push('Expected ' + country.len + ' characters, got ' + cleaned.length);
+      if (!isValid) reasons.push('MOD 97 check failed');
+      html += '<p class="text-sm text-red-600 dark:text-red-400">' + reasons.join('. ') + '</p></div></div>';
+    }
+
+    // Breakdown Table
+    html += '<div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">';
+    html += '<h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3" data-i18n="ibanBreakdown">IBAN Breakdown</h3>';
+    html += '<div class="space-y-2 text-sm">';
+
+    // Visual IBAN with colored segments
+    html += '<div class="font-mono text-base mb-4 flex flex-wrap gap-1">';
+    html += '<span class="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded" title="Country Code">' + escapeHtml(cc) + '</span>';
+    html += '<span class="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded" title="Check Digits">' + escapeHtml(breakdown.checkDigits) + '</span>';
+    if (breakdown.bankCode) {
+      html += '<span class="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded" title="Bank Code">' + escapeHtml(breakdown.bankCode) + '</span>';
+    }
+    if (breakdown.branchCode) {
+      html += '<span class="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded" title="Branch Code">' + escapeHtml(breakdown.branchCode) + '</span>';
+    }
+    if (breakdown.accountNumber) {
+      html += '<span class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded" title="Account Number">' + escapeHtml(breakdown.accountNumber) + '</span>';
+    }
+    html += '</div>';
+
+    // Details grid
+    html += '<div class="grid grid-cols-2 gap-2">';
+    html += '<div class="text-gray-500 dark:text-gray-400">Country</div><div class="text-gray-900 dark:text-gray-100 font-medium">' + escapeHtml(breakdown.countryName) + ' (' + escapeHtml(cc) + ')</div>';
+    html += '<div class="text-gray-500 dark:text-gray-400">Check Digits</div><div class="text-gray-900 dark:text-gray-100 font-medium">' + escapeHtml(breakdown.checkDigits) + '</div>';
+    html += '<div class="text-gray-500 dark:text-gray-400">BBAN</div><div class="text-gray-900 dark:text-gray-100 font-medium font-mono break-all">' + escapeHtml(breakdown.bban) + '</div>';
+    if (breakdown.bankCode) {
+      html += '<div class="text-gray-500 dark:text-gray-400">Bank Code</div><div class="text-gray-900 dark:text-gray-100 font-medium">' + escapeHtml(breakdown.bankCode) + '</div>';
+    }
+    if (breakdown.branchCode) {
+      html += '<div class="text-gray-500 dark:text-gray-400">Branch Code</div><div class="text-gray-900 dark:text-gray-100 font-medium">' + escapeHtml(breakdown.branchCode) + '</div>';
+    }
+    if (breakdown.accountNumber) {
+      html += '<div class="text-gray-500 dark:text-gray-400">Account Number</div><div class="text-gray-900 dark:text-gray-100 font-medium font-mono">' + escapeHtml(breakdown.accountNumber) + '</div>';
+    }
+    html += '<div class="text-gray-500 dark:text-gray-400">Length</div><div class="text-gray-900 dark:text-gray-100 font-medium">' + cleaned.length;
+    if (country) html += ' / ' + country.len + ' expected';
+    html += '</div>';
+    if (breakdown.bic) {
+      html += '<div class="text-gray-500 dark:text-gray-400">BIC/SWIFT</div><div class="text-gray-900 dark:text-gray-100 font-medium">' + escapeHtml(breakdown.bic) + '</div>';
+    }
+    if (breakdown.bankName) {
+      html += '<div class="text-gray-500 dark:text-gray-400">Bank Name</div><div class="text-gray-900 dark:text-gray-100 font-medium">' + escapeHtml(breakdown.bankName) + '</div>';
+    }
+    html += '</div>';
+    html += '</div></div>';
+
+    // Legend
+    html += '<div class="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400">';
+    html += '<span class="flex items-center gap-1"><span class="w-3 h-3 bg-blue-100 dark:bg-blue-900/40 rounded"></span> Country</span>';
+    html += '<span class="flex items-center gap-1"><span class="w-3 h-3 bg-purple-100 dark:bg-purple-900/40 rounded"></span> Check</span>';
+    html += '<span class="flex items-center gap-1"><span class="w-3 h-3 bg-amber-100 dark:bg-amber-900/40 rounded"></span> Bank</span>';
+    html += '<span class="flex items-center gap-1"><span class="w-3 h-3 bg-green-100 dark:bg-green-900/40 rounded"></span> Branch</span>';
+    html += '<span class="flex items-center gap-1"><span class="w-3 h-3 bg-gray-200 dark:bg-gray-600 rounded"></span> Account</span>';
+    html += '</div>';
+
+    validationResult.innerHTML = html;
+
+    // Re-apply translations after innerHTML
+    if (typeof MoleI18n !== 'undefined') {
+      validationResult.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        el.textContent = MoleI18n.t(key);
+      });
+    }
+  }
+
+  if (validateBtn) {
+    validateBtn.addEventListener('click', doValidate);
+  }
+
+  if (validateInput) {
+    validateInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doValidate();
+    });
+  }
+
+  // ==========================================
+  // i18n Translations
+  // ==========================================
+  if (typeof MoleI18n !== 'undefined') {
+    MoleI18n.addTranslations('en', {
+      ibanDesc: 'Generate realistic fake IBAN numbers for testing and development',
+      ibanDisclaimer: 'These IBANs are fake and for testing purposes only. They follow the correct format and pass MOD 97 validation but do not correspond to real bank accounts. Never use them for actual financial transactions.',
+      ibanTabGenerate: 'Generate',
+      ibanTabValidate: 'Validate',
+      ibanCountry: 'Country',
+      ibanCount: 'Count',
+      ibanFormatSpaces: 'Format with spaces',
+      ibanShowDetails: 'Show bank details',
+      ibanGenerate: 'Generate IBANs',
+      ibanCopyAll: 'Copy All',
+      ibanLength: 'IBAN Length',
+      ibanFormat: 'BBAN Format',
+      ibanBankCode: 'Bank Code',
+      ibanEnterIban: 'Enter IBAN to validate',
+      ibanValidatePlaceholder: 'e.g. DE89 3704 0044 0532 0130 00',
+      ibanValidateBtn: 'Validate',
+      ibanValid: 'Valid IBAN',
+      ibanInvalid: 'Invalid IBAN',
+      ibanBreakdown: 'IBAN Breakdown'
+    });
+
+    MoleI18n.addTranslations('ru', {
+      ibanDesc: 'Генерация реалистичных фейковых IBAN-номеров для тестирования и разработки',
+      ibanDisclaimer: 'Эти IBAN являются фейковыми и предназначены только для тестирования. Они соответствуют правильному формату и проходят проверку MOD 97, но не привязаны к реальным банковским счетам. Никогда не используйте их для реальных финансовых операций.',
+      ibanTabGenerate: 'Генерация',
+      ibanTabValidate: 'Проверка',
+      ibanCountry: 'Страна',
+      ibanCount: 'Количество',
+      ibanFormatSpaces: 'Форматировать с пробелами',
+      ibanShowDetails: 'Показать детали банка',
+      ibanGenerate: 'Сгенерировать IBAN',
+      ibanCopyAll: 'Копировать все',
+      ibanLength: 'Длина IBAN',
+      ibanFormat: 'Формат BBAN',
+      ibanBankCode: 'Код банка',
+      ibanEnterIban: 'Введите IBAN для проверки',
+      ibanValidatePlaceholder: 'напр. DE89 3704 0044 0532 0130 00',
+      ibanValidateBtn: 'Проверить',
+      ibanValid: 'IBAN валиден',
+      ibanInvalid: 'IBAN невалиден',
+      ibanBreakdown: 'Разбор IBAN'
+    });
+
+    // Apply current language
+    var currentLang = MoleI18n.getCurrentLang();
+    MoleI18n.setLanguage(currentLang);
+  }
+
+  // ==========================================
+  // Initialize
+  // ==========================================
+  populateCountrySelect();
+  doGenerate();
+})();
+</script>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

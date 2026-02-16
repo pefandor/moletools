@@ -1,0 +1,174 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FAQ from '../../components/FAQ.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'json-formatter')!;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD'
+  },
+  browserRequirements: 'Requires JavaScript',
+  permissions: 'No special permissions required'
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: tool.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer
+    }
+  }))
+};
+---
+
+<Layout title={tool.metaTitle} description={tool.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">📋 JSON Formatter</h1>
+      <p class="text-gray-600 dark:text-gray-400">Format, validate, and beautify your JSON data</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+      <!-- Options -->
+      <div class="flex items-center space-x-4">
+        <label class="flex items-center space-x-2">
+          <input type="number" id="indent" value="2" min="2" max="8" class="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100" />
+          <span class="text-sm text-gray-700 dark:text-gray-300">Indent spaces</span>
+        </label>
+        <button
+          id="formatBtn"
+          class="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 transition-colors"
+        >
+          Format
+        </button>
+        <button
+          id="minifyBtn"
+          class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          Minify
+        </button>
+        <button
+          id="copyBtn"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
+          Copy
+        </button>
+      </div>
+
+      <!-- Input -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Input JSON</label>
+        <textarea
+          id="jsonInput"
+          rows="12"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+          placeholder='{"name": "John", "age": 30}'
+        ></textarea>
+      </div>
+
+      <!-- Output -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Formatted JSON</label>
+        <textarea
+          id="jsonOutput"
+          rows="12"
+          readonly
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 dark:text-gray-100"
+        ></textarea>
+      </div>
+
+      <!-- Error message -->
+      <div id="error" class="hidden text-red-600 text-sm"></div>
+    </div>
+
+    <!-- FAQ Section -->
+    <FAQ items={tool.faq} />
+  </div>
+</Layout>
+
+<script>
+  const jsonInput = document.getElementById('jsonInput');
+  const jsonOutput = document.getElementById('jsonOutput');
+  const formatBtn = document.getElementById('formatBtn');
+  const minifyBtn = document.getElementById('minifyBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const indentInput = document.getElementById('indent');
+  const errorDiv = document.getElementById('error');
+
+  function showError(message) {
+    if (errorDiv) {
+      errorDiv.textContent = message;
+      errorDiv.classList.remove('hidden');
+    }
+  }
+
+  function hideError() {
+    if (errorDiv) {
+      errorDiv.classList.add('hidden');
+    }
+  }
+
+  formatBtn?.addEventListener('click', () => {
+    try {
+      hideError();
+      const input = jsonInput.value.trim();
+      if (!input) {
+        showError('Please enter JSON data');
+        return;
+      }
+
+      const parsed = JSON.parse(input);
+      const indent = parseInt(indentInput.value) || 2;
+      jsonOutput.value = JSON.stringify(parsed, null, indent);
+    } catch (error) {
+      showError(`Invalid JSON: ${error.message}`);
+      jsonOutput.value = '';
+    }
+  });
+
+  minifyBtn?.addEventListener('click', () => {
+    try {
+      hideError();
+      const input = jsonInput.value.trim();
+      if (!input) {
+        showError('Please enter JSON data');
+        return;
+      }
+
+      const parsed = JSON.parse(input);
+      jsonOutput.value = JSON.stringify(parsed);
+    } catch (error) {
+      showError(`Invalid JSON: ${error.message}`);
+      jsonOutput.value = '';
+    }
+  });
+
+  copyBtn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(jsonOutput.value);
+      const originalText = copyBtn.textContent;
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        copyBtn.textContent = originalText;
+      }, 2000);
+    } catch (error) {
+      showError('Failed to copy to clipboard');
+    }
+  });
+</script>

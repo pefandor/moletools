@@ -1,0 +1,259 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'html-entities');
+const title = tool?.metaTitle || 'HTML Entity Encoder/Decoder';
+const description = tool?.metaDescription || 'Encode and decode HTML entities';
+
+// JSON-LD Schema
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: tool?.name || 'HTML Entity Encoder/Decoder',
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      description: tool?.metaDescription || description,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD'
+      }
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: (tool?.faq || []).map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    }
+  ]
+};
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        {tool?.icon} {tool?.name || 'HTML Entity Encoder/Decoder'}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        {tool?.description || 'Encode and decode HTML entities'}
+      </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+      <!-- Input -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Input</label>
+        <textarea
+          id="input"
+          rows="6"
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-y font-mono text-sm"
+          placeholder="Enter HTML text to encode or decode..."
+        ></textarea>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button
+          id="encode-btn"
+          class="px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+        >
+          Encode
+        </button>
+        <button
+          id="decode-btn"
+          class="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+        >
+          Decode
+        </button>
+        <button
+          id="copy-btn"
+          class="px-6 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:bg-gray-600 transition-colors"
+        >
+          📋 Copy Result
+        </button>
+      </div>
+
+      <!-- Output -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Result</label>
+        <textarea
+          id="output"
+          rows="6"
+          readonly
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 resize-y font-mono text-sm"
+          placeholder="Result will appear here..."
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- HTML Entities Reference Table -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Common HTML Entities</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50 dark:bg-gray-700 dark:text-gray-100">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Character</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Entity Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Entity Number</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Description</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap font-mono text-lg">&lt;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;lt;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;#60;</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Less than</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap font-mono text-lg">&gt;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;gt;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;#62;</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Greater than</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap font-mono text-lg">&amp;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;amp;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;#38;</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Ampersand</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap font-mono text-lg">&quot;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;quot;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;#34;</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Double quote</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap font-mono text-lg">&apos;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;apos;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;#39;</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Single quote</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap font-mono text-lg">&nbsp;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;nbsp;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;#160;</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Non-breaking space</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap font-mono text-lg">&copy;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;copy;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;#169;</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Copyright</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap font-mono text-lg">&reg;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;reg;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;#174;</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Registered</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap font-mono text-lg">&trade;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;trade;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;#8482;</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Trademark</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap font-mono text-lg">&euro;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;euro;</td>
+              <td class="px-6 py-4 whitespace-nowrap font-mono">&amp;#8364;</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">Euro sign</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    {tool?.faq && tool.faq.length > 0 && (
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4">
+          {tool.faq.map((item) => (
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.question}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{item.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <script>
+    (function() {
+      var inputField = document.getElementById('input');
+      var outputField = document.getElementById('output');
+      var encodeBtn = document.getElementById('encode-btn');
+      var decodeBtn = document.getElementById('decode-btn');
+      var copyBtn = document.getElementById('copy-btn');
+
+      // HTML entities map
+      var entityMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&apos;'
+      };
+
+      var reverseEntityMap = {
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>',
+        '&quot;': '"',
+        '&apos;': "'"
+      };
+
+      function encodeHtmlEntities(text) {
+        return text.replace(/[&<>"']/g, function(char) {
+          return entityMap[char];
+        });
+      }
+
+      function decodeHtmlEntities(text) {
+        var txt = document.createElement('textarea');
+        txt.innerHTML = text;
+        return txt.value;
+      }
+
+      if (encodeBtn) {
+        encodeBtn.addEventListener('click', function() {
+          var input = inputField.value;
+          var encoded = encodeHtmlEntities(input);
+          outputField.value = encoded;
+        });
+      }
+
+      if (decodeBtn) {
+        decodeBtn.addEventListener('click', function() {
+          var input = inputField.value;
+          var decoded = decodeHtmlEntities(input);
+          outputField.value = decoded;
+        });
+      }
+
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+          if (outputField.value) {
+            navigator.clipboard.writeText(outputField.value);
+            copyBtn.textContent = '✓ Copied';
+            setTimeout(function() { copyBtn.textContent = '📋 Copy Result'; }, 2000);
+          }
+        });
+      }
+    })();
+  </script>
+</Layout>

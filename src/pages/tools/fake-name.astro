@@ -1,0 +1,1187 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'fake-name');
+const title = tool?.metaTitle || 'Fake Name Generator';
+const description = tool?.metaDescription || 'Generate realistic fake identities for testing';
+
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+
+// JSON-LD Schema
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: tool?.name || 'Fake Name Generator',
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      description: tool?.metaDescription || description,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD'
+      }
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: (tool?.faq || []).map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    }
+  ]
+};
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100">
+          <img src="/images/mole/spy.png" alt="MoleTools" class="inline h-14 w-14 mr-2 object-contain" style="vertical-align: -10px;" /><span data-i18n="pageTitle">{tool?.name || 'Fake Name Generator'}</span>
+        </h1>
+        <div class="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+          <button id="lang-en" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors">EN</button>
+          <button id="lang-ru" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors">RU</button>
+        </div>
+      </div>
+      <p class="text-lg text-gray-600 dark:text-gray-400" data-i18n="pageDesc">
+        {tool?.description || 'Generate realistic fake identities for testing'}
+      </p>
+    </div>
+
+    <!-- Two-column layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-6 items-start">
+
+      <!-- LEFT COLUMN: Identity Card -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border-l-4 border-amber-400">
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-amber-50 to-white dark:from-gray-800 dark:to-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100"><img src="/images/mole/passport.png" alt="MoleTools" class="inline h-10 w-10 mr-1 object-contain" style="vertical-align: -8px;" /><span data-i18n="identity">Identity</span></h2>
+        </div>
+
+        <div class="p-6 space-y-5">
+          <!-- Country -->
+          <div>
+            <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5" data-i18n="country">Country</label>
+            <select
+              id="country-select"
+              class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-shadow hover:shadow-sm"
+            >
+              <option value="russia">🇷🇺 Russia</option>
+              <option value="usa">🇺🇸 United States</option>
+              <option value="uk">🇬🇧 United Kingdom</option>
+              <option value="germany">🇩🇪 Germany</option>
+              <option value="france">🇫🇷 France</option>
+              <option value="spain">🇪🇸 Spain</option>
+              <option value="italy">🇮🇹 Italy</option>
+              <option value="japan">🇯🇵 Japan</option>
+              <option value="china">🇨🇳 China</option>
+              <option value="brazil">🇧🇷 Brazil</option>
+            </select>
+          </div>
+
+          <!-- Gender -->
+          <div>
+            <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5" data-i18n="gender">Gender</label>
+            <div class="flex gap-4">
+              <label class="flex items-center cursor-pointer group">
+                <input type="radio" name="gender" value="male" id="gender-male" checked
+                  class="w-4 h-4 text-amber-500 border-gray-300 focus:ring-amber-400" />
+                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" data-i18n="male">Male</span>
+              </label>
+              <label class="flex items-center cursor-pointer group">
+                <input type="radio" name="gender" value="female" id="gender-female"
+                  class="w-4 h-4 text-amber-500 border-gray-300 focus:ring-amber-400" />
+                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" data-i18n="female">Female</span>
+              </label>
+              <label class="flex items-center cursor-pointer group">
+                <input type="radio" name="gender" value="random" id="gender-random"
+                  class="w-4 h-4 text-amber-500 border-gray-300 focus:ring-amber-400" />
+                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" data-i18n="random">Random</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex gap-3">
+            <button
+              id="generate-btn"
+              class="flex-1 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-all hover:shadow-md active:scale-[0.98]"
+            >
+              <span data-i18n="generateNew">🎲 Generate New</span>
+            </button>
+            <button
+              id="copy-all-btn"
+              class="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all hover:shadow-sm"
+            >
+              <span data-i18n="copyAll">📋 Copy All</span>
+            </button>
+          </div>
+
+          <hr class="border-gray-100 dark:border-gray-700" />
+
+          <!-- Fields -->
+          <div class="space-y-4">
+            <!-- Full Name -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="lastName">Last Name</label>
+                <input type="text" id="last-name" readonly
+                  class="field-input w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-100 text-sm font-medium transition-shadow hover:shadow-sm"
+                  placeholder="..." />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="firstName">First Name</label>
+                <input type="text" id="first-name" readonly
+                  class="field-input w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-100 text-sm font-medium transition-shadow hover:shadow-sm"
+                  placeholder="..." />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="patronymic">Patronymic</label>
+                <input type="text" id="patronymic" readonly
+                  class="field-input w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-100 text-sm font-medium transition-shadow hover:shadow-sm"
+                  placeholder="..." />
+              </div>
+            </div>
+
+            <!-- DOB + Phone -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="dateOfBirth">Date of Birth</label>
+                <input type="text" id="birth-date" readonly
+                  class="field-input w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-100 text-sm transition-shadow hover:shadow-sm"
+                  placeholder="YYYY-MM-DD" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="phone">Phone</label>
+                <input type="text" id="phone" readonly
+                  class="field-input w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-100 text-sm transition-shadow hover:shadow-sm"
+                  placeholder="+1 (555) 123-4567" />
+              </div>
+            </div>
+
+            <!-- City + Postal Code -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="city">City</label>
+                <input type="text" id="city" readonly
+                  class="field-input w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-100 text-sm transition-shadow hover:shadow-sm"
+                  placeholder="..." />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="postalCode">Postal Code</label>
+                <input type="text" id="postal-code" readonly
+                  class="field-input w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-100 text-sm transition-shadow hover:shadow-sm"
+                  placeholder="..." />
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="address">Address</label>
+              <input type="text" id="address" readonly
+                class="field-input w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-100 text-sm transition-shadow hover:shadow-sm"
+                placeholder="..." />
+            </div>
+
+            <!-- Regular Email -->
+            <div id="regular-email-block">
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="email">Email</label>
+              <input type="text" id="email" readonly
+                class="field-input w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-100 text-sm transition-shadow hover:shadow-sm"
+                placeholder="email@example.com" />
+            </div>
+          </div>
+
+          <hr class="border-gray-100 dark:border-gray-700" />
+
+          <!-- Temp Email Checkbox -->
+          <label class="flex items-center cursor-pointer group">
+            <input type="checkbox" id="use-temp-email"
+              class="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-400" />
+            <span class="ml-2 text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-blue-500 transition-colors" data-i18n="useTempEmail">
+              ✉️ Use temporary email (auto-refreshing inbox)
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Temp Email -->
+      <div id="temp-email-column" class="temp-email-column hidden">
+        <div id="temp-email-block" class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border-l-4 border-blue-400">
+
+          <!-- Email Header -->
+          <div class="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 px-6 py-4">
+            <div class="flex items-center justify-between mb-1.5">
+              <span id="temp-email-address" class="text-lg font-bold text-white truncate mr-3">Generating...</span>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <button id="copy-temp-email-btn"
+                  class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm rounded-lg transition-colors backdrop-blur-sm">
+                  <span data-i18n="copy">📋 Copy</span>
+                </button>
+                <button id="new-temp-email-btn"
+                  class="px-3 py-1.5 border border-white/40 hover:bg-white/20 text-white text-sm rounded-lg transition-colors">
+                  <span data-i18n="newEmail">🔄 New</span>
+                </button>
+              </div>
+            </div>
+            <p class="text-blue-100 text-xs" data-i18n="disposableInbox">Disposable inbox &bull; Auto-refreshes every 10s</p>
+          </div>
+
+          <!-- Inbox -->
+          <div class="p-4">
+            <!-- Inbox Header -->
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100"><img src="/images/mole/mailman.png" alt="MoleTools" class="inline h-10 w-10 mr-1 object-contain" style="vertical-align: -8px;" /><span data-i18n="inbox">Inbox</span></h3>
+              <div class="flex items-center gap-1.5">
+                <span id="live-dot" class="live-dot inactive"></span>
+                <span id="inbox-status" class="text-xs text-gray-500 dark:text-gray-400" data-i18n="offline">Offline</span>
+              </div>
+            </div>
+
+            <!-- Skeleton Loader -->
+            <div id="inbox-skeleton" class="space-y-3 hidden">
+              <div class="skeleton-card">
+                <div class="skeleton-line w-1/3 h-3 mb-2"></div>
+                <div class="skeleton-line w-2/3 h-4 mb-1.5"></div>
+                <div class="skeleton-line w-full h-3"></div>
+              </div>
+              <div class="skeleton-card">
+                <div class="skeleton-line w-1/4 h-3 mb-2"></div>
+                <div class="skeleton-line w-1/2 h-4 mb-1.5"></div>
+                <div class="skeleton-line w-3/4 h-3"></div>
+              </div>
+            </div>
+
+            <!-- Email List -->
+            <div id="email-list">
+              <div class="empty-inbox text-center py-8">
+                <img src="/images/mole/empty-mailbox.png" alt="" class="w-36 mx-auto opacity-80" />
+                <p class="text-gray-400 dark:text-gray-500 text-sm" data-i18n="noEmails">No emails yet...</p>
+                <div class="waiting-dots mt-2 text-gray-400">
+                  <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timer -->
+          <div class="px-4 pb-4">
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-800/40 rounded-lg p-3">
+              <div class="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-2">
+                <div id="timer-bar" class="h-full rounded-full transition-all duration-1000 timer-bar-fill" style="width: 100%;"></div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-amber-700 dark:text-amber-300">⏱ <span id="timer-text">10:00</span> <span data-i18n="remaining">remaining</span></span>
+                <span class="text-xs text-amber-600/70 dark:text-amber-400/70" data-i18n="emailsAutoDelete">⚠️ Emails auto-delete</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FAQ Section -->
+    {tool?.faq && tool.faq.length > 0 && (
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mt-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4">
+          {tool.faq.map((item) => (
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.question}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{item.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <script is:inline define:vars={{ API_URL }}>
+    (function() {
+      // ===== Translations =====
+      var translations = {
+        en: {
+          pageTitle: 'Fake Name Generator',
+          pageDesc: 'Generate realistic fake identities for testing purposes',
+          identity: 'Identity',
+          country: 'Country',
+          gender: 'Gender',
+          male: 'Male',
+          female: 'Female',
+          random: 'Random',
+          generateNew: '🎲 Generate New',
+          copyAll: '📋 Copy All',
+          lastName: 'Last Name',
+          firstName: 'First Name',
+          patronymic: 'Patronymic',
+          dateOfBirth: 'Date of Birth',
+          phone: 'Phone',
+          city: 'City',
+          postalCode: 'Postal Code',
+          address: 'Address',
+          email: 'Email',
+          useTempEmail: '✉️ Use temporary email (auto-refreshing inbox)',
+          tempEmail: 'Temporary Email',
+          copy: '📋 Copy',
+          newEmail: '🔄 New',
+          disposableInbox: 'Disposable inbox • Auto-refreshes every 10s',
+          inbox: 'Inbox',
+          live: 'Live',
+          offline: 'Offline',
+          checking: 'Checking...',
+          noEmails: 'No emails yet...',
+          waitingMessages: 'waiting for messages',
+          remaining: 'remaining',
+          emailsAutoDelete: '⚠️ Emails auto-delete',
+          from: 'From',
+          subject: 'Subject',
+          deleteEmail: 'Delete',
+          generateNewEmail: 'Generate New Email',
+          copied: 'Copied!',
+          errorGenerateEmail: 'Error: Failed to generate email',
+          errorCheckEmail: 'Error checking emails'
+        },
+        ru: {
+          pageTitle: 'Генератор Имён',
+          pageDesc: 'Генерация реалистичных фейковых данных для тестирования',
+          identity: 'Личность',
+          country: 'Страна',
+          gender: 'Пол',
+          male: 'Мужской',
+          female: 'Женский',
+          random: 'Случайный',
+          generateNew: '🎲 Сгенерировать',
+          copyAll: '📋 Копировать всё',
+          lastName: 'Фамилия',
+          firstName: 'Имя',
+          patronymic: 'Отчество',
+          dateOfBirth: 'Дата рождения',
+          phone: 'Телефон',
+          city: 'Город',
+          postalCode: 'Индекс',
+          address: 'Адрес',
+          email: 'Эл. почта',
+          useTempEmail: '✉️ Временная почта (авто-обновление)',
+          tempEmail: 'Временная почта',
+          copy: '📋 Копировать',
+          newEmail: '🔄 Новый',
+          disposableInbox: 'Одноразовый ящик • Обновление каждые 10с',
+          inbox: 'Входящие',
+          live: 'Онлайн',
+          offline: 'Оффлайн',
+          checking: 'Проверка...',
+          noEmails: 'Писем пока нет...',
+          waitingMessages: 'ожидание сообщений',
+          remaining: 'осталось',
+          emailsAutoDelete: '⚠️ Письма удаляются автоматически',
+          from: 'От',
+          subject: 'Тема',
+          deleteEmail: 'Удалить',
+          generateNewEmail: 'Новый адрес',
+          copied: 'Скопировано!',
+          errorGenerateEmail: 'Ошибка: не удалось создать email',
+          errorCheckEmail: 'Ошибка проверки почты'
+        }
+      };
+
+      var currentLang = localStorage.getItem('lang') || 'en';
+
+      function t(key) {
+        return translations[currentLang][key] || translations.en[key] || key;
+      }
+
+      function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('lang', lang);
+
+        // Update all [data-i18n] elements
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+          var key = el.getAttribute('data-i18n');
+          el.textContent = t(key);
+        });
+
+        // Update button styles
+        var langEnBtn = document.getElementById('lang-en');
+        var langRuBtn = document.getElementById('lang-ru');
+
+        if (lang === 'en') {
+          langEnBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-amber-500 text-white';
+          langRuBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-transparent text-gray-600 dark:text-gray-400';
+        } else {
+          langRuBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-amber-500 text-white';
+          langEnBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-transparent text-gray-600 dark:text-gray-400';
+        }
+      }
+
+      // DOM refs
+      var countrySelect = document.getElementById('country-select');
+      var generateBtn = document.getElementById('generate-btn');
+      var copyAllBtn = document.getElementById('copy-all-btn');
+      var lastNameField = document.getElementById('last-name');
+      var firstNameField = document.getElementById('first-name');
+      var patronymicField = document.getElementById('patronymic');
+      var birthDateField = document.getElementById('birth-date');
+      var emailField = document.getElementById('email');
+      var phoneField = document.getElementById('phone');
+      var cityField = document.getElementById('city');
+      var postalCodeField = document.getElementById('postal-code');
+      var addressField = document.getElementById('address');
+      var genderMale = document.getElementById('gender-male');
+      var genderFemale = document.getElementById('gender-female');
+      var genderRandom = document.getElementById('gender-random');
+
+      // Temp email refs
+      var useTempEmailCheckbox = document.getElementById('use-temp-email');
+      var regularEmailBlock = document.getElementById('regular-email-block');
+      var tempEmailColumn = document.getElementById('temp-email-column');
+      var tempEmailAddress = document.getElementById('temp-email-address');
+      var copyTempEmailBtn = document.getElementById('copy-temp-email-btn');
+      var newTempEmailBtn = document.getElementById('new-temp-email-btn');
+      var inboxStatus = document.getElementById('inbox-status');
+      var liveDot = document.getElementById('live-dot');
+      var inboxSkeleton = document.getElementById('inbox-skeleton');
+      var emailList = document.getElementById('email-list');
+      var timerBar = document.getElementById('timer-bar');
+      var timerText = document.getElementById('timer-text');
+
+      // State
+      var currentTempEmail = null;
+      var currentToken = null;
+      var dismissedMailIds = new Set();
+      var renderedMailIds = new Set();
+      var checkInterval = null;
+      var timerInterval = null;
+      var timeLeft = 600;
+      var currentFirstName = '';
+      var currentLastName = '';
+
+      // ===== Name Data =====
+      var nameData = {
+        russia: {
+          maleFirst: ['Александр', 'Дмитрий', 'Максим', 'Сергей', 'Андрей', 'Алексей', 'Артём', 'Илья', 'Кирилл', 'Михаил', 'Иван', 'Роман', 'Егор', 'Владимир', 'Павел', 'Николай', 'Денис', 'Антон', 'Евгений', 'Виктор', 'Константин', 'Олег', 'Борис', 'Юрий', 'Вадим', 'Игорь', 'Тимофей', 'Глеб', 'Матвей', 'Фёдор'],
+          femaleFirst: ['Анна', 'Мария', 'Елена', 'Наталья', 'Ирина', 'Татьяна', 'Ольга', 'Екатерина', 'Светлана', 'Юлия', 'Вера', 'Надежда', 'Валентина', 'Лариса', 'Людмила', 'Галина', 'Виктория', 'Дарья', 'Алина', 'Полина', 'Ксения', 'Марина', 'Александра', 'Софья', 'Василиса', 'Кристина', 'Диана', 'Евгения', 'Любовь', 'Тамара'],
+          maleLast: ['Иванов', 'Смирнов', 'Кузнецов', 'Попов', 'Васильев', 'Петров', 'Соколов', 'Михайлов', 'Новиков', 'Фёдоров', 'Морозов', 'Волков', 'Алексеев', 'Лебедев', 'Семёнов', 'Егоров', 'Павлов', 'Козлов', 'Степанов', 'Николаев', 'Орлов', 'Андреев', 'Макаров', 'Захаров', 'Борисов', 'Романов', 'Сергеев', 'Антонов', 'Королёв', 'Кудрявцев'],
+          femaleLast: ['Иванова', 'Смирнова', 'Кузнецова', 'Попова', 'Васильева', 'Петрова', 'Соколова', 'Михайлова', 'Новикова', 'Фёдорова', 'Морозова', 'Волкова', 'Алексеева', 'Лебедева', 'Семёнова', 'Егорова', 'Павлова', 'Козлова', 'Степанова', 'Николаева', 'Орлова', 'Андреева', 'Макарова', 'Захарова', 'Борисова', 'Романова', 'Сергеева', 'Антонова', 'Королёва', 'Кудрявцева'],
+          malePatronymic: ['Александрович', 'Дмитриевич', 'Сергеевич', 'Андреевич', 'Алексеевич', 'Михайлович', 'Иванович', 'Владимирович', 'Павлович', 'Николаевич', 'Евгеньевич', 'Викторович', 'Олегович', 'Юрьевич', 'Игоревич', 'Борисович', 'Константинович', 'Фёдорович', 'Валерьевич', 'Петрович'],
+          femalePatronymic: ['Александровна', 'Дмитриевна', 'Сергеевна', 'Андреевна', 'Алексеевна', 'Михайловна', 'Ивановна', 'Владимировна', 'Павловна', 'Николаевна', 'Евгеньевна', 'Викторовна', 'Олеговна', 'Юрьевна', 'Игоревна', 'Борисовна', 'Константиновна', 'Фёдоровна', 'Валерьевна', 'Петровна'],
+          cities: ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань', 'Нижний Новгород', 'Челябинск', 'Самара', 'Омск', 'Ростов-на-Дону'],
+          streets: ['Ленина', 'Советская', 'Пушкина', 'Гагарина', 'Мира', 'Победы', 'Кирова', 'Комсомольская', 'Садовая', 'Центральная'],
+          phoneFormat: '+7 (9XX) XXX-XX-XX',
+          emailDomains: ['mail.ru', 'yandex.ru', 'gmail.com'],
+          dateFormat: 'DD.MM.YYYY'
+        },
+        usa: {
+          maleFirst: ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Christopher', 'Daniel', 'Matthew', 'Anthony', 'Mark', 'Paul', 'Steven', 'Andrew', 'Kenneth', 'Joshua', 'Kevin', 'Brian', 'George', 'Edward', 'Timothy', 'Jason', 'Ryan', 'Jacob', 'Nicholas', 'Eric'],
+          femaleFirst: ['Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen', 'Nancy', 'Lisa', 'Betty', 'Margaret', 'Sandra', 'Ashley', 'Dorothy', 'Kimberly', 'Emily', 'Donna', 'Michelle', 'Carol', 'Amanda', 'Melissa', 'Deborah', 'Stephanie', 'Rebecca', 'Sharon', 'Laura', 'Cynthia'],
+          lastNames: ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Thompson', 'White', 'Harris', 'Clark', 'Lewis', 'Robinson', 'Walker', 'Young', 'Allen', 'King'],
+          cities: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose'],
+          streets: ['Main St', 'Oak Ave', 'Maple Dr', 'Washington St', 'Park Ave', 'Cedar Ln', 'Elm St', 'Lake Rd', 'Hill St', 'Pine Ave'],
+          phoneFormat: '+1 (XXX) XXX-XXXX',
+          emailDomains: ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'],
+          dateFormat: 'MM/DD/YYYY'
+        },
+        uk: {
+          maleFirst: ['Oliver', 'George', 'Harry', 'Jack', 'Jacob', 'Noah', 'Charlie', 'Muhammad', 'Thomas', 'Oscar', 'William', 'James', 'Alfie', 'Leo', 'Henry', 'Freddie', 'Max', 'Ethan', 'Joshua', 'Alexander', 'Daniel', 'Samuel', 'Benjamin', 'Edward', 'Adam', 'Ryan', 'Archie', 'Joseph', 'Lucas', 'Dylan'],
+          femaleFirst: ['Amelia', 'Olivia', 'Emily', 'Isla', 'Ava', 'Jessica', 'Ella', 'Mia', 'Grace', 'Sophie', 'Lily', 'Isabella', 'Charlotte', 'Poppy', 'Lucy', 'Sophia', 'Freya', 'Chloe', 'Daisy', 'Florence', 'Alice', 'Scarlett', 'Ruby', 'Phoebe', 'Matilda', 'Hannah', 'Holly', 'Rose', 'Jasmine', 'Millie'],
+          lastNames: ['Smith', 'Jones', 'Taylor', 'Brown', 'Williams', 'Wilson', 'Johnson', 'Davies', 'Robinson', 'Wright', 'Thompson', 'Evans', 'Walker', 'White', 'Roberts', 'Green', 'Hall', 'Wood', 'Jackson', 'Clarke', 'Patel', 'Khan', 'Lewis', 'Allen', 'Scott', 'Turner', 'Hill', 'Moore', 'Cooper', 'King'],
+          cities: ['London', 'Birmingham', 'Manchester', 'Glasgow', 'Liverpool', 'Leeds', 'Sheffield', 'Edinburgh', 'Bristol', 'Newcastle'],
+          streets: ['High Street', 'Station Road', 'Main Street', 'Park Road', 'Church Street', 'Victoria Road', 'Green Lane', 'Manor Road', 'Church Lane', 'The Avenue'],
+          phoneFormat: '+44 XXXX XXXXXX',
+          emailDomains: ['gmail.com', 'yahoo.co.uk', 'outlook.com', 'btinternet.com'],
+          dateFormat: 'DD/MM/YYYY'
+        },
+        germany: {
+          maleFirst: ['Lukas', 'Leon', 'Maximilian', 'Felix', 'Paul', 'Jonas', 'Tim', 'Elias', 'Noah', 'Ben', 'Alexander', 'Jan', 'Finn', 'Moritz', 'Niklas', 'David', 'Simon', 'Fabian', 'Luca', 'Tom', 'Jakob', 'Philipp', 'Florian', 'Julian', 'Tobias', 'Sebastian', 'Christian', 'Stefan', 'Andreas', 'Thomas'],
+          femaleFirst: ['Mia', 'Emma', 'Hannah', 'Sofia', 'Anna', 'Lena', 'Lea', 'Marie', 'Lina', 'Emily', 'Laura', 'Amelie', 'Sophie', 'Julia', 'Lisa', 'Sarah', 'Johanna', 'Luisa', 'Katharina', 'Christina', 'Nina', 'Franziska', 'Alina', 'Vanessa', 'Maria', 'Nicole', 'Sabrina', 'Stefanie', 'Petra', 'Claudia'],
+          lastNames: ['Müller', 'Schmidt', 'Schneider', 'Fischer', 'Weber', 'Meyer', 'Wagner', 'Becker', 'Schulz', 'Hoffmann', 'Koch', 'Richter', 'Klein', 'Wolf', 'Schröder', 'Neumann', 'Schwarz', 'Zimmermann', 'Braun', 'Krüger', 'Hofmann', 'Hartmann', 'Lange', 'Werner', 'Krause', 'Meier', 'Lehmann', 'Bauer', 'König', 'Kaiser'],
+          cities: ['Berlin', 'Hamburg', 'München', 'Köln', 'Frankfurt', 'Stuttgart', 'Düsseldorf', 'Dortmund', 'Essen', 'Leipzig'],
+          streets: ['Hauptstraße', 'Bahnhofstraße', 'Schulstraße', 'Gartenstraße', 'Kirchstraße', 'Dorfstraße', 'Berliner Straße', 'Poststraße', 'Ringstraße', 'Marktstraße'],
+          phoneFormat: '+49 XXX XXXXXXX',
+          emailDomains: ['gmail.com', 'web.de', 'gmx.de', 't-online.de'],
+          dateFormat: 'DD.MM.YYYY'
+        },
+        france: {
+          maleFirst: ['Lucas', 'Louis', 'Nathan', 'Hugo', 'Gabriel', 'Raphaël', 'Arthur', 'Jules', 'Antoine', 'Maxime', 'Tom', 'Alexandre', 'Théo', 'Léo', 'Enzo', 'Adam', 'Mathis', 'Clément', 'Ethan', 'Noah', 'Baptiste', 'Valentin', 'Nicolas', 'Pierre', 'Julien', 'Thomas', 'Paul', 'Romain', 'Quentin', 'Mathieu'],
+          femaleFirst: ['Emma', 'Léa', 'Chloé', 'Manon', 'Camille', 'Zoé', 'Sarah', 'Clara', 'Inès', 'Jade', 'Lola', 'Anaïs', 'Lucie', 'Océane', 'Marie', 'Eva', 'Louise', 'Lina', 'Rose', 'Juliette', 'Charlotte', 'Alice', 'Léna', 'Ambre', 'Julie', 'Sophie', 'Pauline', 'Laura', 'Mathilde', 'Margaux'],
+          lastNames: ['Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit', 'Durand', 'Leroy', 'Moreau', 'Simon', 'Laurent', 'Lefebvre', 'Michel', 'Garcia', 'Bertrand', 'Roux', 'Vincent', 'Fournier', 'Dupont', 'Lambert', 'Bonnet', 'Legrand', 'Rousseau', 'Garnier', 'Chevalier', 'Fontaine', 'Robin', 'Gauthier', 'Leclerc'],
+          cities: ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier', 'Bordeaux', 'Lille'],
+          streets: ['Rue de la Paix', 'Avenue des Champs', 'Boulevard Victor Hugo', 'Rue Nationale', 'Place de la République', 'Rue du Commerce', 'Avenue Foch', 'Rue Pasteur', 'Boulevard Gambetta', 'Rue Jean Jaurès'],
+          phoneFormat: '+33 X XX XX XX XX',
+          emailDomains: ['gmail.com', 'orange.fr', 'free.fr', 'laposte.net'],
+          dateFormat: 'DD/MM/YYYY'
+        },
+        spain: {
+          maleFirst: ['Antonio', 'José', 'Manuel', 'Francisco', 'Juan', 'David', 'Javier', 'Daniel', 'Carlos', 'Miguel', 'Alejandro', 'Pablo', 'Pedro', 'Jesús', 'Rafael', 'Ángel', 'Fernando', 'Luis', 'Diego', 'Sergio', 'Álvaro', 'Adrián', 'Rubén', 'Marcos', 'Iván', 'Jorge', 'Alberto', 'Andrés', 'Raúl', 'Enrique'],
+          femaleFirst: ['María', 'Carmen', 'Ana', 'Isabel', 'Dolores', 'Pilar', 'Teresa', 'Rosa', 'Lucía', 'Paula', 'Laura', 'Marta', 'Sara', 'Elena', 'Cristina', 'Raquel', 'Andrea', 'Sofía', 'Nuria', 'Silvia', 'Patricia', 'Rocío', 'Beatriz', 'Mónica', 'Sandra', 'Natalia', 'Alba', 'Alicia', 'Irene', 'Clara'],
+          lastNames: ['García', 'Rodríguez', 'González', 'Fernández', 'López', 'Martínez', 'Sánchez', 'Pérez', 'Gómez', 'Martín', 'Jiménez', 'Ruiz', 'Hernández', 'Díaz', 'Moreno', 'Muñoz', 'Álvarez', 'Romero', 'Alonso', 'Gutiérrez', 'Navarro', 'Torres', 'Domínguez', 'Ramos', 'Ramírez', 'Serrano', 'Blanco', 'Molina', 'Castro', 'Ortiz'],
+          cities: ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Zaragoza', 'Málaga', 'Murcia', 'Palma', 'Bilbao', 'Alicante'],
+          streets: ['Calle Mayor', 'Calle Real', 'Avenida de la Constitución', 'Plaza de España', 'Calle San Juan', 'Paseo de Gracia', 'Calle Granada', 'Avenida del Mar', 'Plaza Mayor', 'Calle Ancha'],
+          phoneFormat: '+34 XXX XX XX XX',
+          emailDomains: ['gmail.com', 'hotmail.com', 'yahoo.es', 'outlook.es'],
+          dateFormat: 'DD/MM/YYYY'
+        },
+        italy: {
+          maleFirst: ['Francesco', 'Alessandro', 'Andrea', 'Lorenzo', 'Matteo', 'Gabriele', 'Mattia', 'Leonardo', 'Davide', 'Riccardo', 'Giuseppe', 'Marco', 'Luca', 'Simone', 'Tommaso', 'Federico', 'Antonio', 'Nicola', 'Filippo', 'Giovanni', 'Pietro', 'Michele', 'Stefano', 'Paolo', 'Roberto', 'Edoardo', 'Samuele', 'Daniele', 'Enrico', 'Alberto'],
+          femaleFirst: ['Sofia', 'Giulia', 'Martina', 'Giorgia', 'Sara', 'Emma', 'Aurora', 'Chiara', 'Alice', 'Alessia', 'Francesca', 'Anna', 'Gaia', 'Elisa', 'Beatrice', 'Elena', 'Vittoria', 'Camilla', 'Valentina', 'Matilde', 'Nicole', 'Silvia', 'Federica', 'Ilaria', 'Serena', 'Cristina', 'Claudia', 'Roberta', 'Paola', 'Laura'],
+          lastNames: ['Rossi', 'Russo', 'Ferrari', 'Esposito', 'Bianchi', 'Romano', 'Colombo', 'Ricci', 'Marino', 'Greco', 'Bruno', 'Gallo', 'Conti', 'De Luca', 'Mancini', 'Costa', 'Giordano', 'Rizzo', 'Lombardi', 'Moretti', 'Barbieri', 'Fontana', 'Santoro', 'Caruso', 'Ferrara', 'Martini', 'Leone', 'Gentile', 'Vitale', 'Pellegrini'],
+          cities: ['Roma', 'Milano', 'Napoli', 'Torino', 'Palermo', 'Genova', 'Bologna', 'Firenze', 'Bari', 'Catania'],
+          streets: ['Via Roma', 'Corso Italia', 'Via Garibaldi', 'Piazza Vittorio', 'Via Mazzini', 'Via Dante', 'Corso Vittorio', 'Via Cavour', 'Piazza del Duomo', 'Via Nazionale'],
+          phoneFormat: '+39 XXX XXX XXXX',
+          emailDomains: ['gmail.com', 'libero.it', 'alice.it', 'tiscali.it'],
+          dateFormat: 'DD/MM/YYYY'
+        },
+        japan: {
+          maleFirst: ['Hiroshi', 'Takashi', 'Kenji', 'Satoshi', 'Daisuke', 'Taro', 'Haruto', 'Yuto', 'Sota', 'Akira', 'Riku', 'Kazuki', 'Kaito', 'Ren', 'Daiki', 'Kento', 'Shota', 'Hayato', 'Yuma', 'Ryota', 'Koji', 'Masato', 'Takeshi', 'Makoto', 'Takuya', 'Naoki', 'Sho', 'Yuji', 'Kei', 'Ryusei'],
+          femaleFirst: ['Yui', 'Hina', 'Sakura', 'Aoi', 'Mio', 'Rina', 'Ayaka', 'Nanami', 'Yuna', 'Haruka', 'Miyu', 'Riko', 'Akari', 'Mei', 'Hana', 'Koharu', 'Himari', 'Ichika', 'Karin', 'Nana', 'Aya', 'Emi', 'Yuka', 'Misaki', 'Kaori', 'Megumi', 'Sayaka', 'Natsuki', 'Mana', 'Saki'],
+          lastNames: ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada', 'Sasaki', 'Yamaguchi', 'Saito', 'Matsumoto', 'Inoue', 'Kimura', 'Hayashi', 'Shimizu', 'Mori', 'Abe', 'Ikeda', 'Hashimoto', 'Ogawa', 'Okada', 'Hasegawa', 'Sakamoto', 'Fujii', 'Nishimura'],
+          cities: ['Tokyo', 'Osaka', 'Yokohama', 'Nagoya', 'Sapporo', 'Fukuoka', 'Kobe', 'Kyoto', 'Kawasaki', 'Saitama'],
+          streets: ['1-chome', '2-chome', '3-chome', 'Sakura-dori', 'Miyuki-dori', 'Chuo-dori', 'Ekimae-dori', 'Minami-dori', 'Kita-dori', 'Higashi-dori'],
+          phoneFormat: '+81 XX-XXXX-XXXX',
+          emailDomains: ['gmail.com', 'yahoo.co.jp', 'docomo.ne.jp', 'softbank.ne.jp'],
+          dateFormat: 'YYYY/MM/DD'
+        },
+        china: {
+          maleFirst: ['Wei', 'Ming', 'Jun', 'Lei', 'Yang', 'Qiang', 'Tao', 'Chao', 'Yong', 'Gang', 'Bo', 'Hao', 'Long', 'Jian', 'Peng', 'Kai', 'Zhi', 'Feng', 'Rui', 'Shuai', 'Bin', 'Xin', 'Hua', 'Yu', 'Jie', 'Sheng', 'Xiang', 'Chen', 'Liang', 'Dong'],
+          femaleFirst: ['Fang', 'Jing', 'Xiuying', 'Yan', 'Na', 'Juan', 'Hong', 'Ying', 'Xia', 'Dan', 'Lan', 'Xue', 'Ling', 'Mei', 'Xiao', 'Jia', 'Wen', 'Qing', 'Zhen', 'Yue', 'Min', 'Hui', 'Ping', 'Li', 'Fei', 'Qian', 'Yun', 'Lin', 'Shu', 'Ting'],
+          lastNames: ['Wang', 'Li', 'Zhang', 'Liu', 'Chen', 'Yang', 'Huang', 'Zhao', 'Wu', 'Zhou', 'Xu', 'Sun', 'Ma', 'Zhu', 'Hu', 'Guo', 'He', 'Gao', 'Lin', 'Luo', 'Zheng', 'Liang', 'Song', 'Tang', 'Han', 'Feng', 'Deng', 'Cao', 'Peng', 'Yuan'],
+          cities: ['Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chengdu', 'Hangzhou', 'Wuhan', 'Xian', 'Chongqing', 'Tianjin'],
+          streets: ['Renmin Road', 'Zhongshan Road', 'Jiefang Road', 'Dongfeng Road', 'Heping Road', 'Xinhua Road', 'Guangming Road', 'Changjiang Road', 'Huanghe Road', 'Nanjing Road'],
+          phoneFormat: '+86 1XX XXXX XXXX',
+          emailDomains: ['qq.com', '163.com', '126.com', 'gmail.com'],
+          dateFormat: 'YYYY-MM-DD'
+        },
+        brazil: {
+          maleFirst: ['João', 'José', 'Antonio', 'Francisco', 'Carlos', 'Paulo', 'Pedro', 'Lucas', 'Luiz', 'Marcos', 'Gabriel', 'Rafael', 'Miguel', 'Felipe', 'Mateus', 'Rodrigo', 'Bruno', 'Diego', 'Gustavo', 'Eduardo', 'Leonardo', 'Thiago', 'André', 'Ricardo', 'Fernando', 'Henrique', 'Vinícius', 'Guilherme', 'Caio', 'Daniel'],
+          femaleFirst: ['Maria', 'Ana', 'Francisca', 'Antonia', 'Adriana', 'Juliana', 'Fernanda', 'Patricia', 'Camila', 'Amanda', 'Bruna', 'Jessica', 'Leticia', 'Julia', 'Mariana', 'Rafaela', 'Beatriz', 'Larissa', 'Gabriela', 'Carolina', 'Tatiana', 'Renata', 'Vanessa', 'Priscila', 'Bianca', 'Débora', 'Monica', 'Simone', 'Aline', 'Sandra'],
+          lastNames: ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes', 'Costa', 'Ribeiro', 'Martins', 'Carvalho', 'Almeida', 'Lopes', 'Soares', 'Fernandes', 'Vieira', 'Barbosa', 'Rocha', 'Dias', 'Nascimento', 'Araujo', 'Cardoso', 'Correia', 'Teixeira', 'Monteiro', 'Mendes', 'Moreira'],
+          cities: ['São Paulo', 'Rio de Janeiro', 'Brasília', 'Salvador', 'Fortaleza', 'Belo Horizonte', 'Manaus', 'Curitiba', 'Recife', 'Porto Alegre'],
+          streets: ['Rua das Flores', 'Avenida Paulista', 'Rua da Praia', 'Avenida Brasil', 'Rua do Comércio', 'Avenida Central', 'Rua Santos', 'Rua Direita', 'Avenida Independência', 'Rua São João'],
+          phoneFormat: '+55 (XX) XXXXX-XXXX',
+          emailDomains: ['gmail.com', 'hotmail.com', 'yahoo.com.br', 'outlook.com'],
+          dateFormat: 'DD/MM/YYYY'
+        }
+      };
+
+      // ===== Transliteration =====
+      var translitMap = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
+        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+        'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'E',
+        'Ж': 'Zh', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M',
+        'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U',
+        'Ф': 'F', 'Х': 'H', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Sch',
+        'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya'
+      };
+
+      function transliterate(text) {
+        var result = '';
+        for (var i = 0; i < text.length; i++) {
+          var char = text[i];
+          result += translitMap[char] || char;
+        }
+        return result;
+      }
+
+      // ===== Utilities =====
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function randomItem(array) {
+        return array[randomInt(0, array.length - 1)];
+      }
+
+      function generateBirthDate(format) {
+        var year = randomInt(1960, 2005);
+        var month = randomInt(1, 12);
+        var day = randomInt(1, 28);
+        var dd = String(day).padStart(2, '0');
+        var mm = String(month).padStart(2, '0');
+        var yyyy = String(year);
+        return format.replace('DD', dd).replace('MM', mm).replace('YYYY', yyyy);
+      }
+
+      function getSelectedGender() {
+        if (genderRandom.checked) return Math.random() < 0.5 ? 'male' : 'female';
+        return genderFemale.checked ? 'female' : 'male';
+      }
+
+      function generatePhone(format) {
+        var phone = format;
+        while (phone.includes('X')) {
+          phone = phone.replace('X', randomInt(0, 9));
+        }
+        return phone;
+      }
+
+      function generateEmail(firstName, lastName, domains) {
+        var name = transliterate(firstName).toLowerCase().replace(/[^a-z0-9]/g, '');
+        var surname = transliterate(lastName).toLowerCase().replace(/[^a-z0-9]/g, '');
+        var domain = randomItem(domains);
+        if (!name || !surname) {
+          return 'user' + randomInt(1000, 9999) + '@' + domain;
+        }
+        return name + '.' + surname + '@' + domain;
+      }
+
+      function generateAddress(country, data) {
+        var streetNumber = randomInt(1, 999);
+        var street = randomItem(data.streets);
+        var city = randomItem(data.cities);
+        var postalCode = '';
+        var streetAddr = '';
+
+        switch(country) {
+          case 'russia':
+            postalCode = String(randomInt(100000, 999999));
+            streetAddr = 'ул. ' + street + ', д. ' + streetNumber + ', кв. ' + randomInt(1, 200);
+            break;
+          case 'usa':
+            postalCode = String(randomInt(10000, 99999));
+            city = city + ', ' + ['CA', 'NY', 'TX', 'FL', 'IL'][randomInt(0, 4)];
+            streetAddr = streetNumber + ' ' + street;
+            break;
+          case 'uk':
+            postalCode = ['SW', 'SE', 'NW', 'NE', 'E', 'W', 'N', 'S'][randomInt(0, 7)] + randomInt(1, 20) + ' ' + randomInt(1, 9) + ['AA', 'AB', 'AD', 'AE', 'AF'][randomInt(0, 4)];
+            streetAddr = streetNumber + ' ' + street;
+            break;
+          case 'germany':
+            postalCode = String(randomInt(10000, 99999));
+            streetAddr = street + ' ' + streetNumber;
+            break;
+          case 'france':
+            postalCode = String(randomInt(10000, 99999));
+            streetAddr = streetNumber + ' ' + street;
+            break;
+          case 'spain':
+            postalCode = String(randomInt(10000, 99999));
+            streetAddr = street + ', ' + streetNumber;
+            break;
+          case 'italy':
+            postalCode = String(randomInt(10000, 99999));
+            streetAddr = street + ', ' + streetNumber;
+            break;
+          case 'japan':
+            postalCode = '〒' + randomInt(100, 999) + '-' + randomInt(1000, 9999);
+            streetAddr = street + ' ' + streetNumber;
+            break;
+          case 'china':
+            postalCode = String(randomInt(100000, 999999));
+            streetAddr = street + ' ' + streetNumber;
+            break;
+          case 'brazil':
+            postalCode = 'CEP: ' + randomInt(10000, 99999) + '-' + randomInt(100, 999);
+            city = city + ' - ' + ['SP', 'RJ', 'MG', 'BA', 'PR'][randomInt(0, 4)];
+            streetAddr = street + ', ' + streetNumber;
+            break;
+          default:
+            streetAddr = streetNumber + ' ' + street;
+        }
+
+        return { street: streetAddr, city: city, postalCode: postalCode };
+      }
+
+      // ===== Identity Generation =====
+      function generateIdentity() {
+        var country = countrySelect.value;
+        var data = nameData[country];
+        var gender = getSelectedGender();
+
+        var firstName = randomItem(gender === 'male' ? data.maleFirst : data.femaleFirst);
+        var lastName;
+        if (data.maleLast && data.femaleLast) {
+          lastName = randomItem(gender === 'male' ? data.maleLast : data.femaleLast);
+        } else {
+          lastName = randomItem(data.lastNames);
+        }
+
+        var patronymic = '';
+        if (data.malePatronymic && data.femalePatronymic) {
+          patronymic = randomItem(gender === 'male' ? data.malePatronymic : data.femalePatronymic);
+        }
+
+        currentFirstName = firstName;
+        currentLastName = lastName;
+
+        var birthDate = generateBirthDate(data.dateFormat || 'YYYY-MM-DD');
+        var email = generateEmail(firstName, lastName, data.emailDomains);
+        var phone = generatePhone(data.phoneFormat);
+        var addr = generateAddress(country, data);
+
+        lastNameField.value = lastName;
+        firstNameField.value = firstName;
+        patronymicField.value = patronymic;
+        birthDateField.value = birthDate;
+        emailField.value = email;
+        phoneField.value = phone;
+        cityField.value = addr.city;
+        postalCodeField.value = addr.postalCode;
+        addressField.value = addr.street;
+      }
+
+      function copyAll() {
+        var text = t('lastName') + ': ' + lastNameField.value + '\n';
+        text += t('firstName') + ': ' + firstNameField.value + '\n';
+        if (patronymicField.value) text += t('patronymic') + ': ' + patronymicField.value + '\n';
+        text += t('dateOfBirth') + ': ' + birthDateField.value + '\n';
+        text += t('email') + ': ' + (currentTempEmail || emailField.value) + '\n';
+        text += t('phone') + ': ' + phoneField.value + '\n';
+        text += t('city') + ': ' + cityField.value + '\n';
+        text += t('postalCode') + ': ' + postalCodeField.value + '\n';
+        text += t('address') + ': ' + addressField.value;
+
+        navigator.clipboard.writeText(text);
+        var copySpan = copyAllBtn.querySelector('[data-i18n="copyAll"]');
+        if (copySpan) copySpan.textContent = '✓ ' + t('copied');
+        setTimeout(function() {
+          if (copySpan) copySpan.textContent = t('copyAll');
+        }, 2000);
+      }
+
+      // ===== Typewriter Effect =====
+      function typewriterEffect(element, text) {
+        element.textContent = '';
+        var i = 0;
+        var interval = setInterval(function() {
+          element.textContent += text[i];
+          i++;
+          if (i >= text.length) {
+            clearInterval(interval);
+          }
+        }, 25);
+      }
+
+      // ===== Inbox Helpers =====
+      function showEmptyInbox() {
+        emailList.innerHTML = '<div class="empty-inbox text-center py-8">' +
+          '<img src="/images/mole/empty-mailbox.png" alt="" class="w-36 mx-auto opacity-80" />' +
+          '<p class="text-gray-400 dark:text-gray-500 text-sm" data-i18n="noEmails">' + t('noEmails') + '</p>' +
+          '<div class="waiting-dots mt-2 text-gray-400">' +
+          '<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>' +
+          '</div></div>';
+      }
+
+      function showInboxSkeleton() {
+        if (inboxSkeleton) inboxSkeleton.classList.remove('hidden');
+        emailList.classList.add('hidden');
+      }
+
+      function hideInboxSkeleton() {
+        if (inboxSkeleton) inboxSkeleton.classList.add('hidden');
+        emailList.classList.remove('hidden');
+      }
+
+      // ===== Temp Mail Functions (mail.tm API) =====
+      async function generateTempEmail() {
+        try {
+          // Loading states
+          tempEmailAddress.textContent = '';
+          tempEmailAddress.classList.add('typing-cursor');
+          newTempEmailBtn.disabled = true;
+          var newEmailSpan = newTempEmailBtn.querySelector('[data-i18n="newEmail"]');
+          if (newEmailSpan) newEmailSpan.textContent = '⏳';
+          showInboxSkeleton();
+
+          var response = await fetch(API_URL + '/tempmail/generate');
+          if (!response.ok) throw new Error('Failed to generate email');
+
+          var data = await response.json();
+          currentTempEmail = data.email;
+          currentToken = data.token;
+          dismissedMailIds = new Set();
+          renderedMailIds = new Set();
+
+          // Typewriter effect
+          tempEmailAddress.classList.remove('typing-cursor');
+          typewriterEffect(tempEmailAddress, data.email);
+
+          // Restore button
+          newTempEmailBtn.disabled = false;
+          if (newEmailSpan) newEmailSpan.textContent = t('newEmail');
+
+          // Show email list
+          hideInboxSkeleton();
+          showEmptyInbox();
+
+          startEmailCheck();
+          startTimer();
+        } catch (error) {
+          tempEmailAddress.textContent = t('errorGenerateEmail');
+          tempEmailAddress.classList.remove('typing-cursor');
+          newTempEmailBtn.disabled = false;
+          if (newEmailSpan) newEmailSpan.textContent = t('newEmail');
+          hideInboxSkeleton();
+          console.error('Temp email error:', error);
+        }
+      }
+
+      async function checkEmails() {
+        if (!currentToken) return;
+
+        try {
+          var response = await fetch(
+            API_URL + '/tempmail/check?token=' + encodeURIComponent(currentToken)
+          );
+          if (!response.ok) throw new Error('Failed to check emails');
+
+          var emails = await response.json();
+
+          // Filter out dismissed emails
+          if (emails && emails.length > 0) {
+            emails = emails.filter(function(e) {
+              return !dismissedMailIds.has(e.mail_id);
+            });
+          }
+
+          if (emails && emails.length > 0) {
+            renderEmails(emails);
+          } else {
+            showEmptyInbox();
+          }
+
+          if (inboxStatus) inboxStatus.textContent = t('live');
+        } catch (error) {
+          if (inboxStatus) inboxStatus.textContent = t('errorCheckEmail');
+          console.error('Check emails error:', error);
+        }
+      }
+
+      function renderEmails(emails) {
+        emailList.innerHTML = '';
+
+        emails.forEach(function(email, index) {
+          var isNew = !renderedMailIds.has(email.mail_id);
+          renderedMailIds.add(email.mail_id);
+
+          var card = document.createElement('div');
+          card.className = 'email-item border-b border-gray-100 dark:border-gray-700 last:border-b-0';
+          if (isNew) card.classList.add('new-email-flash');
+          card.style.animation = 'fadeIn 0.3s ease-out ' + (index * 0.05) + 's both';
+
+          var preview = (email.mail_text_only || email.mail_text || '').substring(0, 80);
+
+          card.innerHTML =
+            '<div class="email-summary group flex items-start gap-3 p-3 cursor-pointer rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">' +
+              '<span class="text-base mt-0.5">' + (isNew ? '📩' : '📧') + '</span>' +
+              '<div class="flex-1 min-w-0">' +
+                '<div class="flex items-center justify-between">' +
+                  '<span class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">' + (email.mail_from || 'Unknown') + '</span>' +
+                  '<span class="text-xs text-gray-400 dark:text-gray-500 ml-2 flex-shrink-0">' + formatTimestamp(email.mail_timestamp) + '</span>' +
+                '</div>' +
+                '<div class="text-sm text-gray-700 dark:text-gray-200 truncate">' + (email.mail_subject || 'No subject') + '</div>' +
+                '<div class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">' + preview + '</div>' +
+              '</div>' +
+              '<button class="delete-email-btn opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 rounded transition-all flex-shrink-0" data-mail-id="' + email.mail_id + '">✕</button>' +
+            '</div>' +
+            '<div class="email-body" style="display:none;">' +
+              '<div class="px-3 pb-3 ml-9">' +
+                '<pre class="whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">' + (email.mail_text_only || email.mail_text || 'No content') + '</pre>' +
+              '</div>' +
+            '</div>';
+
+          // Accordion: click summary to toggle body
+          var summary = card.querySelector('.email-summary');
+          summary.addEventListener('click', function(e) {
+            if (e.target.closest('.delete-email-btn')) return;
+
+            var body = card.querySelector('.email-body');
+            var isOpen = body.style.display !== 'none';
+
+            // Close all other email bodies
+            document.querySelectorAll('.email-body').forEach(function(b) {
+              b.style.display = 'none';
+            });
+
+            if (!isOpen) {
+              body.style.display = 'block';
+            }
+          });
+
+          // Delete handler
+          var deleteBtn = card.querySelector('.delete-email-btn');
+          deleteBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            deleteEmail(email.mail_id, card);
+          });
+
+          emailList.appendChild(card);
+        });
+      }
+
+      function deleteEmail(mailId, cardElement) {
+        dismissedMailIds.add(mailId);
+
+        // Slide out + fade
+        cardElement.style.transition = 'opacity 300ms, transform 300ms';
+        cardElement.style.opacity = '0';
+        cardElement.style.transform = 'translateX(20px)';
+
+        setTimeout(function() {
+          cardElement.remove();
+          if (emailList.children.length === 0) {
+            showEmptyInbox();
+          }
+        }, 300);
+      }
+
+      function formatTimestamp(timestamp) {
+        if (!timestamp) return '';
+        var date = new Date(timestamp * 1000);
+        return date.toLocaleTimeString();
+      }
+
+      // ===== Email Check Interval =====
+      function startEmailCheck() {
+        if (checkInterval) clearInterval(checkInterval);
+        if (liveDot) { liveDot.classList.add('active'); liveDot.classList.remove('inactive'); }
+        if (inboxStatus) inboxStatus.textContent = t('live');
+        checkEmails();
+        checkInterval = setInterval(checkEmails, 10000);
+      }
+
+      function stopEmailCheck() {
+        if (checkInterval) { clearInterval(checkInterval); checkInterval = null; }
+        if (liveDot) { liveDot.classList.remove('active'); liveDot.classList.add('inactive'); }
+        if (inboxStatus) inboxStatus.textContent = t('offline');
+      }
+
+      // ===== Timer =====
+      function startTimer() {
+        timeLeft = 600;
+        if (timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(function() {
+          timeLeft--;
+          var minutes = Math.floor(timeLeft / 60);
+          var seconds = timeLeft % 60;
+          if (timerText) timerText.textContent = minutes + ':' + String(seconds).padStart(2, '0');
+
+          var percentage = (timeLeft / 600) * 100;
+          if (timerBar) {
+            timerBar.style.width = percentage + '%';
+            if (percentage > 60) {
+              timerBar.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
+            } else if (percentage > 30) {
+              timerBar.style.background = 'linear-gradient(90deg, #eab308, #facc15)';
+            } else {
+              timerBar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
+            }
+          }
+
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+          }
+        }, 1000);
+      }
+
+      function stopTimer() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      }
+
+      // ===== Toggle Temp Email Column =====
+      function toggleTempEmail() {
+        var isChecked = useTempEmailCheckbox.checked;
+
+        if (isChecked) {
+          regularEmailBlock.style.display = 'none';
+          tempEmailColumn.classList.remove('hidden');
+          // Trigger reflow for animation
+          tempEmailColumn.offsetHeight;
+          tempEmailColumn.classList.remove('sliding-out');
+          tempEmailColumn.classList.add('sliding-in');
+          generateTempEmail();
+        } else {
+          regularEmailBlock.style.display = 'block';
+          tempEmailColumn.classList.remove('sliding-in');
+          tempEmailColumn.classList.add('sliding-out');
+          setTimeout(function() {
+            tempEmailColumn.classList.add('hidden');
+            tempEmailColumn.classList.remove('sliding-out');
+          }, 400);
+          stopEmailCheck();
+          stopTimer();
+          currentTempEmail = null;
+          currentToken = null;
+          dismissedMailIds = new Set();
+          renderedMailIds = new Set();
+        }
+      }
+
+      // ===== Event Listeners =====
+      if (generateBtn) generateBtn.addEventListener('click', generateIdentity);
+      if (copyAllBtn) copyAllBtn.addEventListener('click', copyAll);
+      if (useTempEmailCheckbox) useTempEmailCheckbox.addEventListener('change', toggleTempEmail);
+
+      if (copyTempEmailBtn) {
+        copyTempEmailBtn.addEventListener('click', function() {
+          if (currentTempEmail) {
+            navigator.clipboard.writeText(currentTempEmail);
+            var copySpan = copyTempEmailBtn.querySelector('[data-i18n="copy"]');
+            if (copySpan) copySpan.textContent = '✓';
+            setTimeout(function() {
+              if (copySpan) copySpan.textContent = t('copy');
+            }, 2000);
+          }
+        });
+      }
+
+      if (newTempEmailBtn) {
+        newTempEmailBtn.addEventListener('click', function() {
+          stopEmailCheck();
+          stopTimer();
+          generateTempEmail();
+        });
+      }
+
+      // Language switcher
+      var langEnBtn = document.getElementById('lang-en');
+      var langRuBtn = document.getElementById('lang-ru');
+
+      if (langEnBtn) {
+        langEnBtn.addEventListener('click', function() {
+          setLanguage('en');
+        });
+      }
+
+      if (langRuBtn) {
+        langRuBtn.addEventListener('click', function() {
+          setLanguage('ru');
+        });
+      }
+
+      // Initialize language on load
+      setLanguage(currentLang);
+
+      // Generate on load
+      generateIdentity();
+    })();
+  </script>
+
+  <style>
+    /* Slide animations for temp email column */
+    .temp-email-column.sliding-in {
+      animation: slideInRight 400ms ease-out forwards;
+    }
+    .temp-email-column.sliding-out {
+      animation: slideOutRight 400ms ease-out forwards;
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideOutRight {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(30px); }
+    }
+
+    /* Fade in for email cards */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Live dot pulse */
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .live-dot.active {
+      background-color: #22c55e;
+      animation: livePulse 2s infinite;
+    }
+    .live-dot.inactive {
+      background-color: #9ca3af;
+    }
+    @keyframes livePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    }
+
+    /* Skeleton loader */
+    .skeleton-card {
+      padding: 12px;
+      border-radius: 8px;
+      background: #f9fafb;
+    }
+    :global(.dark) .skeleton-card {
+      background: #374151;
+    }
+    .skeleton-line {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: skeletonPulse 1.5s infinite;
+      border-radius: 4px;
+      display: block;
+    }
+    :global(.dark) .skeleton-line {
+      background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+      background-size: 200% 100%;
+    }
+    @keyframes skeletonPulse {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Waiting dots */
+    .waiting-dots .dot {
+      display: inline-block;
+      font-size: 1.5rem;
+      line-height: 1;
+      animation: dotPulse 1.5s infinite;
+    }
+    .waiting-dots .dot:nth-child(2) { animation-delay: 0.3s; }
+    .waiting-dots .dot:nth-child(3) { animation-delay: 0.6s; }
+    @keyframes dotPulse {
+      0%, 80%, 100% { opacity: 0.3; }
+      40% { opacity: 1; }
+    }
+
+    /* Typing cursor */
+    .typing-cursor::after {
+      content: '|';
+      animation: cursorBlink 0.7s infinite;
+      font-weight: 100;
+    }
+    @keyframes cursorBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* New email flash */
+    @keyframes flashYellow {
+      0% { background-color: rgba(250, 204, 21, 0.3); }
+      100% { background-color: transparent; }
+    }
+    .new-email-flash {
+      animation: flashYellow 1s ease-out;
+    }
+
+    /* Timer bar gradient */
+    .timer-bar-fill {
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+    }
+
+    /* Field hover effect */
+    .field-input:hover {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</Layout>

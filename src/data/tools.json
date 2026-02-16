@@ -1,0 +1,982 @@
+[
+  {
+    "id": "json-formatter",
+    "name": "JSON Formatter",
+    "description": "Format, validate, and beautify JSON data",
+    "icon": "📋",
+    "category": "Formatter",
+    "path": "/tools/json-formatter",
+    "metaTitle": "JSON Formatter & Validator - Free Online Tool",
+    "metaDescription": "Free online JSON formatter, validator, and beautifier. Format, minify, and validate JSON data instantly in your browser. No data upload required.",
+    "faq": [
+      {
+        "question": "Is my JSON data safe when using this formatter?",
+        "answer": "Absolutely! This tool runs entirely in your browser. Your JSON data never leaves your device and is not sent to any server, ensuring complete privacy and security."
+      },
+      {
+        "question": "What's the difference between format and minify?",
+        "answer": "Format adds proper indentation and line breaks to make JSON human-readable, while minify removes all unnecessary whitespace to reduce file size - useful for production environments."
+      },
+      {
+        "question": "Can this tool validate JSON syntax?",
+        "answer": "Yes! The formatter automatically validates your JSON. If there are syntax errors, you'll see a clear error message indicating what's wrong and where the error occurred."
+      },
+      {
+        "question": "What's the maximum JSON file size I can format?",
+        "answer": "Since processing happens in your browser, the limit depends on your device's memory. Most modern browsers can handle JSON files up to several megabytes without issues."
+      }
+    ]
+  },
+  {
+    "id": "base64",
+    "name": "Base64 Encoder/Decoder",
+    "description": "Encode and decode Base64 strings",
+    "icon": "🔐",
+    "category": "Encoder",
+    "path": "/tools/base64",
+    "metaTitle": "Base64 Encoder & Decoder - Free Online Converter",
+    "metaDescription": "Encode and decode Base64 strings online. Free, fast, and secure Base64 conversion tool. Supports UTF-8 encoding. All processing happens in your browser.",
+    "faq": [
+      {
+        "question": "What is Base64 encoding used for?",
+        "answer": "Base64 encoding converts binary data into ASCII text format. It's commonly used for embedding images in HTML/CSS, sending data in URLs, email attachments, and storing complex data in text-based formats like JSON or XML."
+      },
+      {
+        "question": "Does Base64 encoding encrypt my data?",
+        "answer": "No, Base64 is NOT encryption - it's simply an encoding method. Anyone can decode Base64 strings. Never use Base64 alone to protect sensitive information; use proper encryption instead."
+      },
+      {
+        "question": "Can I encode special characters and emojis?",
+        "answer": "Yes! This tool uses UTF-8 encoding, which supports all Unicode characters including special characters, emojis, and non-Latin scripts like Chinese, Arabic, or Cyrillic."
+      },
+      {
+        "question": "Why does my encoded string contain only letters and numbers?",
+        "answer": "Base64 uses a limited character set: A-Z, a-z, 0-9, +, /, and = for padding. This ensures the encoded data is safe to transmit through systems that might not handle special characters well."
+      }
+    ]
+  },
+  {
+    "id": "uuid",
+    "name": "UUID Generator",
+    "description": "Generate random UUIDs (v4)",
+    "icon": "🎲",
+    "category": "Generator",
+    "path": "/tools/uuid",
+    "metaTitle": "UUID Generator v4 - Random UUID/GUID Online Tool",
+    "metaDescription": "Generate random UUIDs (v4) online. Free UUID/GUID generator with bulk generation, uppercase, and formatting options. Cryptographically secure random generation.",
+    "faq": [
+      {
+        "question": "What is a UUID and when should I use it?",
+        "answer": "UUID (Universally Unique IDentifier) is a 128-bit identifier guaranteed to be unique across space and time. Use UUIDs for database primary keys, session IDs, file names, or any scenario requiring unique identifiers without central coordination."
+      },
+      {
+        "question": "Are the generated UUIDs truly random?",
+        "answer": "Yes! This tool uses cryptographically secure random number generation (crypto.getRandomValues) to generate UUID v4, ensuring high-quality randomness and virtually eliminating collision risk."
+      },
+      {
+        "question": "What's the difference between UUID versions?",
+        "answer": "This tool generates UUID v4 (random). Other versions include: v1 (timestamp-based), v3/v5 (name-based with hashing). V4 is most common for general use as it's completely random and doesn't leak information like timestamps or MAC addresses."
+      },
+      {
+        "question": "Can I generate multiple UUIDs at once?",
+        "answer": "Yes! Use the 'Count' field to generate up to 100 UUIDs in one click. You can also customize the format (uppercase/lowercase, with or without dashes) for all generated UUIDs."
+      }
+    ]
+  },
+  {
+    "id": "timestamp",
+    "name": "Timestamp Converter",
+    "description": "Convert between Unix timestamps and dates",
+    "icon": "⏰",
+    "category": "Converter",
+    "path": "/tools/timestamp",
+    "metaTitle": "Unix Timestamp Converter - Date to Timestamp Tool",
+    "metaDescription": "Convert between Unix timestamps and human-readable dates. Free online timestamp converter supporting seconds, milliseconds, UTC, and local time zones.",
+    "faq": [
+      {
+        "question": "What is a Unix timestamp?",
+        "answer": "A Unix timestamp is the number of seconds that have elapsed since January 1, 1970, 00:00:00 UTC (the Unix epoch). It's a universal way to represent time that's independent of time zones and calendar systems."
+      },
+      {
+        "question": "What's the difference between seconds and milliseconds?",
+        "answer": "Unix timestamps are traditionally in seconds, but JavaScript and some databases use milliseconds (1/1000 of a second). This tool auto-detects the format: values over 4102444800 are treated as milliseconds."
+      },
+      {
+        "question": "How do I handle different time zones?",
+        "answer": "The tool shows both local time (your computer's time zone) and UTC (Coordinated Universal Time). When working with timestamps in code, always store them in UTC and convert to local time only for display."
+      },
+      {
+        "question": "Why are Unix timestamps useful?",
+        "answer": "Timestamps are ideal for storing dates in databases, APIs, and logs because they're timezone-independent, easy to compare/sort, and occupy minimal space (just a number). They avoid ambiguities with date formats and daylight saving time."
+      }
+    ]
+  },
+  {
+    "id": "qr",
+    "name": "QR Code Generator",
+    "description": "Generate QR codes from text or URLs",
+    "icon": "📱",
+    "category": "Generator",
+    "path": "/tools/qr",
+    "metaTitle": "QR Code Generator - Create Free QR Codes Online",
+    "metaDescription": "Free QR code generator for URLs, text, WiFi, emails, and phone numbers. Customize colors and size. Download as PNG or SVG. No registration required.",
+    "faq": [
+      {
+        "question": "What can I encode in a QR code?",
+        "answer": "QR codes can encode any text: URLs, plain text, email addresses (mailto:), phone numbers (tel:), WiFi credentials, vCards, and more. The tool includes quick templates for common formats."
+      },
+      {
+        "question": "What is error correction and which level should I use?",
+        "answer": "Error correction allows QR codes to be readable even if partially damaged. Low (7%) is fine for digital use. Use Medium (15%) for most cases. High (30%) is best for codes that might get dirty or damaged, but creates larger, denser codes."
+      },
+      {
+        "question": "Can I change the QR code colors?",
+        "answer": "Yes! You can customize both foreground (the QR pattern) and background colors. Ensure sufficient contrast between colors for reliable scanning. Dark foreground on light background works best."
+      },
+      {
+        "question": "What format should I download - PNG or SVG?",
+        "answer": "Use PNG for digital displays, social media, or documents. Use SVG for print materials, logos, or when you need perfect scaling at any size. SVG is a vector format that never loses quality when resized."
+      }
+    ]
+  },
+  {
+    "id": "password",
+    "name": "Password Generator",
+    "description": "Generate strong random passwords",
+    "icon": "🔑",
+    "category": "Generator",
+    "path": "/tools/password",
+    "metaTitle": "Strong Password Generator - Secure Random Passwords",
+    "metaDescription": "Generate strong, cryptographically secure passwords online. Customize length, character types, and complexity. Batch generation available. Completely client-side.",
+    "faq": [
+      {
+        "question": "How secure are the generated passwords?",
+        "answer": "Extremely secure! This tool uses the Web Crypto API (crypto.getRandomValues) which provides cryptographically strong random values. Combined with length and character variety, the passwords are resistant to brute-force attacks."
+      },
+      {
+        "question": "What password length should I use?",
+        "answer": "For maximum security, use at least 16 characters. For highly sensitive accounts (banking, email), consider 20+ characters. Longer passwords are exponentially harder to crack. Modern password managers make long passwords easy to handle."
+      },
+      {
+        "question": "What does 'Exclude ambiguous characters' mean?",
+        "answer": "This option removes characters that look similar and could be confused: 0 (zero) vs O (letter), 1 (one) vs l (lowercase L) vs I (uppercase i). Useful when you need to type passwords manually or share them verbally."
+      },
+      {
+        "question": "Should I include symbols in my passwords?",
+        "answer": "Yes, when possible. Symbols significantly increase password strength by expanding the character set. However, some systems don't allow all symbols. If you encounter issues, try generating without symbols or use only common ones like !@#$%."
+      }
+    ]
+  },
+  {
+    "id": "png-to-webp",
+    "name": "PNG to WebP Converter",
+    "description": "Convert PNG images to WebP format with quality control",
+    "icon": "🖼️",
+    "category": "Converter",
+    "path": "/tools/png-to-webp",
+    "metaTitle": "PNG to WebP Converter - Fast Image Conversion Online",
+    "metaDescription": "Convert PNG images to WebP format online. Reduce file size by up to 30% with adjustable quality settings. Fast server-side processing. Free online converter.",
+    "faq": [
+      {
+        "question": "What are the benefits of converting PNG to WebP?",
+        "answer": "WebP provides superior compression compared to PNG, typically reducing file size by 25-35% while maintaining similar quality. This leads to faster website loading times, reduced bandwidth usage, and better performance on mobile devices."
+      },
+      {
+        "question": "Will I lose image quality when converting to WebP?",
+        "answer": "WebP supports both lossy and lossless compression. At quality settings above 80, the visual difference is minimal to imperceptible for most images. You can adjust the quality slider to find the perfect balance between file size and quality."
+      },
+      {
+        "question": "What is the maximum file size I can upload?",
+        "answer": "The maximum upload size is 10MB per file. For larger files, consider compressing them first or contact us for enterprise solutions. Most web images are well under this limit."
+      },
+      {
+        "question": "Is WebP compatible with all browsers?",
+        "answer": "WebP is supported by all modern browsers including Chrome, Firefox, Edge, Safari (since 14), and Opera. For older browsers, you can use fallback images or picture element with multiple formats."
+      }
+    ]
+  },
+  {
+    "id": "compress",
+    "name": "Image Compressor",
+    "description": "Compress JPEG, PNG, and WebP images with size optimization",
+    "icon": "📦",
+    "category": "Converter",
+    "path": "/tools/compress",
+    "metaTitle": "Image Compressor - Reduce Image File Size Online",
+    "metaDescription": "Compress JPEG, PNG, and WebP images online. Reduce file size up to 80% with adjustable quality. Resize images by width/height. See before and after file sizes.",
+    "faq": [
+      {
+        "question": "How much can I reduce my image file size?",
+        "answer": "Compression results vary by image type and content. Typically, you can expect 40-60% size reduction for photos (JPEG) and 25-50% for graphics (PNG) without noticeable quality loss. Some images may compress even more."
+      },
+      {
+        "question": "What's the difference between resizing and compressing?",
+        "answer": "Resizing changes the image dimensions (width/height in pixels), which reduces file size by having fewer pixels. Compressing reduces file size by optimizing how the image data is stored, without changing dimensions. You can do both for maximum size reduction."
+      },
+      {
+        "question": "Which format should I use - JPEG, PNG, or WebP?",
+        "answer": "Use JPEG for photos and images with many colors. Use PNG for graphics, logos, screenshots, or images requiring transparency. Use WebP for the best compression with quality - it's ideal for modern websites and supports both photos and transparency."
+      },
+      {
+        "question": "Will compression affect image quality?",
+        "answer": "At moderate quality settings (70-85), compression has minimal visible impact on most images. The tool shows you the before/after file sizes so you can find the optimal balance. You can always adjust quality and re-compress if needed."
+      }
+    ]
+  },
+  {
+    "id": "qr-advanced",
+    "name": "QR Code Advanced",
+    "description": "Advanced QR code generator with custom colors and high resolution",
+    "icon": "🎨",
+    "category": "Generator",
+    "path": "/tools/qr-advanced",
+    "metaTitle": "Advanced QR Code Generator - Custom Colors & High Quality",
+    "metaDescription": "Generate high-quality QR codes with custom colors, sizes, and error correction. Server-side rendering for large QR codes. Professional quality output.",
+    "faq": [
+      {
+        "question": "What's the difference between this and the basic QR generator?",
+        "answer": "This advanced version uses server-side rendering for higher quality output, supports larger QR codes (up to 2048px), and provides professional-grade error correction. It's ideal for print materials, marketing campaigns, and high-resolution displays."
+      },
+      {
+        "question": "Can I use custom brand colors in my QR code?",
+        "answer": "Yes! You can customize both the QR pattern color and background color to match your brand identity. Ensure sufficient contrast (we recommend at least 3:1 ratio) for reliable scanning across different devices."
+      },
+      {
+        "question": "What size QR code should I generate for printing?",
+        "answer": "For business cards, use at least 512px. For posters and banners, use 1024px or larger. For billboards and large displays, use the maximum 2048px. Always test scanning from the expected viewing distance before mass printing."
+      },
+      {
+        "question": "How much data can I encode in a QR code?",
+        "answer": "QR codes can store up to 4,296 alphanumeric characters or 7,089 numeric characters. However, more data creates denser, more complex codes that may be harder to scan. For best results, keep URLs under 200 characters and use URL shorteners for longer links."
+      }
+    ]
+  },
+  {
+    "id": "watermark",
+    "name": "Image Watermark Tool",
+    "description": "Add custom text watermarks to images with full control",
+    "icon": "💧",
+    "category": "Converter",
+    "path": "/tools/watermark",
+    "metaTitle": "Image Watermark Tool - Add Text Watermarks Online",
+    "metaDescription": "Add custom text watermarks to images online. Adjust opacity, position, font size, and color. Protect your photos and images. Fast server-side processing.",
+    "faq": [
+      {
+        "question": "Will the watermark affect my image quality?",
+        "answer": "No! The watermark is applied using high-quality image processing that preserves the original image quality. The output uses the same format and maintains 95% quality for JPEG images with optimization enabled."
+      },
+      {
+        "question": "What opacity level should I use for my watermark?",
+        "answer": "For subtle watermarks that don't distract from the image, use 20-40% opacity. For more visible copyright protection, use 50-70%. For maximum visibility, use 80-100%. The default 30% provides good balance between visibility and subtlety."
+      },
+      {
+        "question": "Can I use special characters or emojis in my watermark?",
+        "answer": "Yes! You can use any Unicode characters including special symbols, accented letters, and even emojis in your watermark text. The tool supports full Unicode text rendering."
+      },
+      {
+        "question": "What's the best position for a watermark?",
+        "answer": "For copyright protection, bottom-right or bottom-left corners are common as they're less intrusive. Center position works well for 'CONFIDENTIAL' or 'DRAFT' stamps. Top positions are good for branding. Choose based on your image composition and purpose."
+      }
+    ]
+  },
+  {
+    "id": "color-picker",
+    "name": "Color Picker & Converter",
+    "description": "Convert colors between HEX, RGB, and HSL formats",
+    "icon": "🎨",
+    "category": "Converter",
+    "path": "/tools/color-picker",
+    "metaTitle": "Color Picker & Converter - HEX, RGB, HSL Online Tool",
+    "metaDescription": "Free online color converter between HEX, RGB, and HSL formats. Real-time color preview and conversion. Copy any format instantly. Color history included.",
+    "faq": [
+      {
+        "question": "What's the difference between HEX, RGB, and HSL?",
+        "answer": "HEX uses hexadecimal notation (#RRGGBB) common in web design. RGB represents Red, Green, Blue values (0-255) used in CSS and graphics. HSL represents Hue, Saturation, Lightness - more intuitive for color adjustments. All three represent the same colors in different ways."
+      },
+      {
+        "question": "How do I use the color history?",
+        "answer": "The tool automatically saves your last 10 selected colors. Click any color in the history to quickly switch back to it. This is useful for maintaining consistent color palettes while designing."
+      },
+      {
+        "question": "Can I paste color values directly?",
+        "answer": "Yes! Simply paste or type a color value in any format (HEX, RGB, or HSL) into the corresponding input field. The other formats will update automatically in real-time."
+      },
+      {
+        "question": "Why would I convert between color formats?",
+        "answer": "Different tools and platforms use different formats. Web CSS supports all three, but some design tools prefer specific formats. Converting helps maintain color consistency across different platforms and workflows."
+      }
+    ]
+  },
+  {
+    "id": "lorem-ipsum",
+    "name": "Lorem Ipsum Generator",
+    "description": "Generate placeholder Lorem Ipsum text for your designs",
+    "icon": "📝",
+    "category": "Generator",
+    "path": "/tools/lorem-ipsum",
+    "metaTitle": "Lorem Ipsum Generator - Placeholder Text Online Tool",
+    "metaDescription": "Generate Lorem Ipsum placeholder text online. Choose paragraphs, sentences, or words. Customizable count and classic start option. Instant copy to clipboard.",
+    "faq": [
+      {
+        "question": "What is Lorem Ipsum and why use it?",
+        "answer": "Lorem Ipsum is scrambled Latin text used as placeholder content since the 1500s. It's used in design and publishing to focus on visual layout without being distracted by readable content. It has a natural distribution of letters, making it look like real text."
+      },
+      {
+        "question": "Can I choose how much text to generate?",
+        "answer": "Yes! You can generate 1-20 paragraphs, sentences, or up to 1000 words. The tool also lets you choose whether to start with the classic 'Lorem ipsum dolor sit amet...' phrase."
+      },
+      {
+        "question": "Is the generated text always the same?",
+        "answer": "No! Except for the optional classic starting phrase, the tool generates random text from a dictionary of Latin words. Each generation produces different combinations while maintaining the Lorem Ipsum style."
+      },
+      {
+        "question": "How do I quickly copy the generated text?",
+        "answer": "Click the 'Copy' button to instantly copy all generated text to your clipboard. You can then paste it directly into your design tool, document, or code editor."
+      }
+    ]
+  },
+  {
+    "id": "word-counter",
+    "name": "Word & Character Counter",
+    "description": "Count words, characters, sentences, and reading time",
+    "icon": "📊",
+    "category": "Formatter",
+    "path": "/tools/word-counter",
+    "metaTitle": "Word Counter & Character Counter - Text Statistics Tool",
+    "metaDescription": "Free online word and character counter. Real-time statistics for characters, words, sentences, paragraphs, and reading time. Perfect for writers and students.",
+    "faq": [
+      {
+        "question": "How is reading time calculated?",
+        "answer": "Reading time is based on an average reading speed of 200 words per minute, which is standard for comfortable reading. The actual time may vary based on text complexity and individual reading speed."
+      },
+      {
+        "question": "What counts as a word?",
+        "answer": "Words are counted by splitting text on whitespace (spaces, tabs, newlines). Hyphenated words count as one word. Numbers and symbols count as words if separated by spaces."
+      },
+      {
+        "question": "How are sentences counted?",
+        "answer": "Sentences are identified by terminal punctuation marks: periods (.), exclamation marks (!), and question marks (?). Text without these marks but with content counts as one sentence."
+      },
+      {
+        "question": "Does this tool store my text?",
+        "answer": "No! This tool runs entirely in your browser. Your text is never sent to any server or stored anywhere. All counting happens locally on your device, ensuring complete privacy."
+      }
+    ]
+  },
+  {
+    "id": "url-encoder",
+    "name": "URL Encoder/Decoder",
+    "description": "Encode and decode URL strings for safe transmission",
+    "icon": "🔗",
+    "category": "Encoder",
+    "path": "/tools/url-encoder",
+    "metaTitle": "URL Encoder/Decoder - Encode and Decode URLs Online",
+    "metaDescription": "Free online URL encoder and decoder. Convert special characters for safe URL transmission using encodeURIComponent and decodeURIComponent. Instant results.",
+    "faq": [
+      {
+        "question": "What is URL encoding and why is it needed?",
+        "answer": "URL encoding converts special characters into a format that can be safely transmitted over the internet. URLs can only contain certain characters (letters, numbers, and a few symbols). Special characters like spaces, ampersands, and non-ASCII characters must be encoded as %XX hex values."
+      },
+      {
+        "question": "What's the difference between encoding and escaping?",
+        "answer": "URL encoding (percent-encoding) uses encodeURIComponent which converts all special characters except letters, numbers, and -_.!~*'(). This is the safest method for encoding URL parameters and is different from older escape() methods which are now deprecated."
+      },
+      {
+        "question": "Can I encode entire URLs or just parts?",
+        "answer": "This tool uses encodeURIComponent which is designed for URL components (query parameters, path segments). Don't encode entire URLs including http:// as it will encode the slashes and colons. Only encode the dynamic parts that contain user input or special characters."
+      },
+      {
+        "question": "How do I use the Swap feature?",
+        "answer": "The Swap button exchanges the input and output fields. This is useful when you want to perform the reverse operation quickly - for example, after encoding, swap and decode to verify the result."
+      }
+    ]
+  },
+  {
+    "id": "html-entities",
+    "name": "HTML Entity Encoder/Decoder",
+    "description": "Convert special characters to HTML entities and back",
+    "icon": "🏷️",
+    "category": "Encoder",
+    "path": "/tools/html-entities",
+    "metaTitle": "HTML Entity Encoder/Decoder - Convert HTML Special Characters",
+    "metaDescription": "Free HTML entity encoder and decoder. Convert &, <, >, quotes and other special characters to HTML entities. Includes reference table of common entities.",
+    "faq": [
+      {
+        "question": "What are HTML entities and when should I use them?",
+        "answer": "HTML entities are special codes that represent reserved characters in HTML. Use them when you want to display characters like <, >, &, or quotes as literal text instead of HTML code. For example, &lt; displays as < instead of starting an HTML tag."
+      },
+      {
+        "question": "What's the difference between named and numbered entities?",
+        "answer": "Named entities use descriptive names like &amp; for ampersand, &lt; for less-than. Numbered entities use decimal codes like &#38; or hex codes like &#x26;. Both produce the same result, but named entities are more readable in source code."
+      },
+      {
+        "question": "Do I need to encode all special characters?",
+        "answer": "You must encode &, <, and > to prevent HTML parsing issues. Quotes (\" and ') should be encoded in HTML attributes. Other characters like copyright (©) or euro (€) can be entered directly with UTF-8 encoding, but entities ensure compatibility with all systems."
+      },
+      {
+        "question": "How does the decoder handle complex entities?",
+        "answer": "The decoder recognizes both named entities (&amp;) and numbered entities (&#38; or &#x26;). It uses browser's native HTML parsing to ensure accurate decoding of all standard entities including special symbols, accented characters, and emoji codes."
+      }
+    ]
+  },
+  {
+    "id": "markdown-preview",
+    "name": "Markdown Preview",
+    "description": "Live Markdown to HTML converter with real-time preview",
+    "icon": "📄",
+    "category": "Formatter",
+    "path": "/tools/markdown-preview",
+    "metaTitle": "Markdown Preview - Live Markdown to HTML Converter",
+    "metaDescription": "Free online Markdown preview tool with live rendering. Convert Markdown to HTML in real-time. Supports headings, bold, italic, links, lists, and code blocks.",
+    "faq": [
+      {
+        "question": "What Markdown syntax is supported?",
+        "answer": "This tool supports common Markdown syntax including headings (#), bold (**text**), italic (*text*), inline code (`code`), links ([text](url)), ordered and unordered lists, and horizontal rules (---). The preview updates in real-time as you type."
+      },
+      {
+        "question": "Can I copy the generated HTML?",
+        "answer": "Yes! Click the 'Copy HTML' button to copy the generated HTML code to your clipboard. You can then paste it directly into your website, blog, or content management system."
+      },
+      {
+        "question": "Is this a full Markdown parser?",
+        "answer": "This is a lightweight parser supporting the most common Markdown features. It uses regex-based parsing optimized for speed and real-time preview. For advanced features like tables, footnotes, or GitHub-flavored Markdown, consider using a full parser library."
+      },
+      {
+        "question": "Does the tool support code blocks?",
+        "answer": "Currently, the tool supports inline code with backticks (`code`). Multi-line code blocks with triple backticks (```) are not yet supported in this lightweight implementation. The focus is on common formatting needs with instant preview."
+      }
+    ]
+  },
+  {
+    "id": "hash-generator",
+    "name": "Hash Generator",
+    "description": "Generate MD5, SHA-1, SHA-256, SHA-512 hashes for text and files",
+    "icon": "#️⃣",
+    "category": "Generator",
+    "path": "/tools/hash-generator",
+    "metaTitle": "Hash Generator - MD5, SHA-1, SHA-256, SHA-512 Online Tool",
+    "metaDescription": "Free online hash generator for text and files. Generate MD5, SHA-1, SHA-256, and SHA-512 hashes in real-time. Supports files up to 100MB. Instant hash calculation.",
+    "faq": [
+      {
+        "question": "What is a hash and why use it?",
+        "answer": "A hash is a fixed-size string generated from input data using a mathematical algorithm. Hashes are used for data integrity verification, password storage, digital signatures, and file comparison. The same input always produces the same hash, but even tiny changes in input create completely different hashes."
+      },
+      {
+        "question": "Which hash algorithm should I use?",
+        "answer": "SHA-256 is recommended for most modern applications - it's secure and widely supported. SHA-512 offers higher security for sensitive data. MD5 and SHA-1 are legacy algorithms with known vulnerabilities - use them only for non-security purposes like checksums. Never use MD5 or SHA-1 for password hashing."
+      },
+      {
+        "question": "Can I hash files with this tool?",
+        "answer": "Yes! Switch to 'File' input mode to hash files up to 100MB. File hashing is useful for verifying file integrity, detecting duplicates, or ensuring downloads haven't been corrupted or tampered with."
+      },
+      {
+        "question": "Are hashes reversible?",
+        "answer": "No! Hash functions are one-way - you cannot reverse a hash back to the original data. This makes them ideal for password storage. However, weak passwords can be cracked using rainbow tables or brute force, so always use strong, unique passwords."
+      }
+    ]
+  },
+  {
+    "id": "regex-tester",
+    "name": "Regex Tester",
+    "description": "Test regular expressions with live highlighting and match details",
+    "icon": "🔍",
+    "category": "Formatter",
+    "path": "/tools/regex-tester",
+    "metaTitle": "Regex Tester - Test Regular Expressions Online with Live Highlighting",
+    "metaDescription": "Free online regex tester with real-time highlighting. Test regular expressions with flags (g, i, m, s). See all matches with positions and groups. Instant validation.",
+    "faq": [
+      {
+        "question": "What regex flags are supported?",
+        "answer": "The tool supports four common flags: g (global - find all matches), i (case-insensitive matching), m (multiline - ^ and $ match line boundaries), and s (dotAll - . matches newlines). Combine flags for complex pattern matching."
+      },
+      {
+        "question": "How do I read the match details?",
+        "answer": "Match details show each match with its text content, position (start-end index), and any captured groups. This helps debug complex patterns and understand exactly what your regex is matching. Matches are also highlighted in yellow in the preview."
+      },
+      {
+        "question": "What happens if my regex is invalid?",
+        "answer": "Invalid regex patterns display a red error message explaining what's wrong. Common errors include unclosed brackets, invalid escape sequences, or unbalanced parentheses. Fix the error to see matches again."
+      },
+      {
+        "question": "Can I test multiline patterns?",
+        "answer": "Yes! Enable the 'm' (multiline) flag to make ^ and $ match the start/end of lines instead of the entire string. Enable the 's' (dotAll) flag to make . match newline characters. These are essential for processing multi-line text."
+      }
+    ]
+  },
+  {
+    "id": "fake-name",
+    "name": "Fake Name Generator",
+    "description": "Generate realistic fake identities for testing purposes",
+    "icon": "👤",
+    "category": "Generator",
+    "path": "/tools/fake-name",
+    "metaTitle": "Fake Name Generator - Create Realistic Test Identities",
+    "metaDescription": "Generate realistic fake names, addresses, emails, and phone numbers for 10 countries. Perfect for testing, development, and placeholder data. Culturally appropriate names.",
+    "faq": [
+      {
+        "question": "What information is generated?",
+        "answer": "The tool generates complete fake identities including: full name (culturally appropriate for selected country), date of birth, email address, phone number (correct format for country), and postal address. All data is randomly generated and not based on real people."
+      },
+      {
+        "question": "Which countries are supported?",
+        "answer": "Currently supports 10 countries: Russia, USA, United Kingdom, Germany, France, Spain, Italy, Japan, China, and Brazil. Each country uses authentic name formats, phone number patterns, and address structures specific to that region."
+      },
+      {
+        "question": "Is this data safe to use for testing?",
+        "answer": "Yes! All generated data is completely fictional and random. However, phone numbers and email addresses might coincidentally match real ones. For production testing, use dedicated test domains (like example.com) and official test phone number ranges."
+      },
+      {
+        "question": "Can I copy all the data at once?",
+        "answer": "Yes! Click the 'Copy All' button to copy the entire generated identity (name, birth date, email, phone, address) as formatted text. You can paste it directly into forms, databases, or documentation."
+      }
+    ]
+  },
+  {
+    "id": "image-resize",
+    "name": "Image Resize Tool",
+    "description": "Resize images to custom dimensions with aspect ratio control",
+    "icon": "📐",
+    "category": "Converter",
+    "path": "/tools/image-resize",
+    "metaTitle": "Image Resize Tool - Resize Images Online with Aspect Ratio",
+    "metaDescription": "Free online image resizer. Resize JPG, PNG, WebP images to custom width and height. Maintain aspect ratio option. Fast server-side processing. Max 10MB.",
+    "faq": [
+      {
+        "question": "What image formats are supported?",
+        "answer": "The tool supports JPEG, PNG, and WebP formats. All common image types used on the web are fully supported. The output will be in the same format as your input image."
+      },
+      {
+        "question": "What does 'Keep aspect ratio' mean?",
+        "answer": "When enabled, the tool maintains the original proportions of your image. If you specify only width, height is calculated automatically. If both are specified, the image fits within those dimensions without distortion."
+      },
+      {
+        "question": "Can I specify only width or only height?",
+        "answer": "Yes! You can specify just one dimension, and the other will be calculated automatically based on the original aspect ratio. This prevents image distortion while resizing to your target size."
+      },
+      {
+        "question": "Will resizing affect image quality?",
+        "answer": "The tool uses high-quality resampling algorithms (Lanczos) to maintain image sharpness when resizing. Enlarging images may show some quality loss, but reducing size generally maintains excellent quality."
+      }
+    ]
+  },
+  {
+    "id": "webp-to-png",
+    "name": "WebP to PNG Converter",
+    "description": "Convert WebP images to PNG format online",
+    "icon": "🔄",
+    "category": "Converter",
+    "path": "/tools/webp-to-png",
+    "metaTitle": "WebP to PNG Converter - Convert WebP Images Online",
+    "metaDescription": "Convert WebP images to PNG format online. Free and fast conversion with transparency support. Server-side processing for reliable results. Max 10MB.",
+    "faq": [
+      {
+        "question": "Why convert WebP to PNG?",
+        "answer": "While WebP offers better compression, PNG has wider compatibility with older software and systems. PNG is also preferred for editing workflows and when you need lossless quality with transparency."
+      },
+      {
+        "question": "Will transparency be preserved?",
+        "answer": "Yes! The converter automatically detects and preserves transparency from WebP images. If the WebP has no transparency, it's converted to RGB PNG for smaller file size."
+      },
+      {
+        "question": "Is there any quality loss during conversion?",
+        "answer": "No! The conversion maintains 100% of the image data. PNG is a lossless format, so the converted image will have identical quality to the original WebP, but typically with a larger file size."
+      },
+      {
+        "question": "What is the maximum file size?",
+        "answer": "The maximum upload size is 10MB per file. This is sufficient for most web images. If you have larger files, consider resizing them first or using batch processing tools."
+      }
+    ]
+  },
+  {
+    "id": "pdf-merge",
+    "name": "PDF Merge Tool",
+    "description": "Merge multiple PDF files into a single document",
+    "icon": "📑",
+    "category": "Converter",
+    "path": "/tools/pdf-merge",
+    "metaTitle": "PDF Merge Tool - Combine Multiple PDFs Online",
+    "metaDescription": "Free online PDF merger. Combine multiple PDF files into one document. Drag to reorder pages. Fast server-side merging. Secure and easy to use.",
+    "faq": [
+      {
+        "question": "How many PDFs can I merge at once?",
+        "answer": "You can merge as many PDF files as needed, with a minimum of 2 files required. The files are merged in the order you arrange them, so use the up/down arrows to reorder before merging."
+      },
+      {
+        "question": "Will the merged PDF preserve quality and formatting?",
+        "answer": "Yes! The merge process preserves all content, formatting, fonts, images, and metadata from the original PDFs. The output is a standard PDF that can be opened in any PDF viewer."
+      },
+      {
+        "question": "Can I change the order of PDFs before merging?",
+        "answer": "Absolutely! Use the up and down arrow buttons next to each file to reorder them. The final merged PDF will have pages in the exact order you arrange in the list."
+      },
+      {
+        "question": "Is my data secure when using this tool?",
+        "answer": "Files are processed server-side only for the duration of the merge operation and are not stored. However, for highly sensitive documents, consider using offline tools or your organization's approved software."
+      }
+    ]
+  },
+  {
+    "id": "what-is-my-ip",
+    "name": "What Is My IP",
+    "description": "Discover your IP address, location, and browser information",
+    "icon": "🌐",
+    "category": "Encoder",
+    "path": "/tools/what-is-my-ip",
+    "metaTitle": "What Is My IP Address - Free IP Lookup Tool",
+    "metaDescription": "Find your IP address, location, ISP, and browser details instantly. Free IP lookup tool with geolocation, timezone, and network information. Fast and accurate.",
+    "faq": [
+      {
+        "question": "What is an IP address and why is it important?",
+        "answer": "An IP address is a unique numerical label assigned to every device connected to the internet. It's used to identify and locate devices, enable communication between them, and route data across networks. Your IP address reveals your approximate location and internet service provider."
+      },
+      {
+        "question": "Can this tool detect if I'm using a VPN or proxy?",
+        "answer": "The tool shows your current public IP address and location data. If you're using a VPN or proxy, it will display the IP and location of that service, not your real location. Compare results with and without VPN to verify it's working correctly."
+      },
+      {
+        "question": "What's the difference between IPv4 and IPv6?",
+        "answer": "IPv4 uses 32-bit addresses (like 192.168.1.1) and can provide about 4.3 billion unique addresses. IPv6 uses 128-bit addresses (like 2001:0db8:85a3::8a2e:0370:7334) and provides virtually unlimited addresses. Most networks use IPv4, but IPv6 adoption is growing as IPv4 addresses run out."
+      },
+      {
+        "question": "How accurate is the geolocation information?",
+        "answer": "IP geolocation typically provides accurate country and city-level information based on ISP databases. However, the exact location (coordinates) may be approximate, often pointing to your ISP's data center or city center rather than your precise address. Accuracy varies by ISP and region."
+      }
+    ]
+  },
+  {
+    "id": "qr-scanner",
+    "name": "QR Code Scanner",
+    "description": "Scan QR codes using camera or upload images",
+    "icon": "📸",
+    "category": "Encoder",
+    "path": "/tools/qr-scanner",
+    "metaTitle": "QR Code Scanner - Free Online QR Reader",
+    "metaDescription": "Free online QR code scanner and reader. Scan QR codes using your camera or upload images. Supports URLs, text, WiFi, vCard, email, and phone numbers. Instant results.",
+    "faq": [
+      {
+        "question": "How do I scan a QR code with my camera?",
+        "answer": "Click the Camera tab, grant camera access when prompted, and point your camera at the QR code. The scanner automatically detects and decodes QR codes in real-time. For best results, ensure good lighting and hold your device steady."
+      },
+      {
+        "question": "Can I scan QR codes from images or screenshots?",
+        "answer": "Yes! Switch to the Upload Image tab and either drag-and-drop an image or click Choose File. The tool supports PNG, JPG, and WebP formats. This is useful for scanning QR codes from screenshots, saved images, or photos."
+      },
+      {
+        "question": "What types of QR codes can this scanner read?",
+        "answer": "The scanner reads all standard QR code formats including URLs, plain text, email addresses (mailto:), phone numbers (tel:), WiFi credentials, vCards, and more. It automatically detects the content type and provides appropriate actions like Open Link or Send Email."
+      },
+      {
+        "question": "Does this tool store my scanned QR codes?",
+        "answer": "No! All scanning happens locally in your browser. The tool maintains a temporary history of your current session (last 10 scans) for convenience, but this data is not saved to any server and disappears when you close the page."
+      }
+    ]
+  },
+  {
+    "id": "fake-iban",
+    "name": "Fake IBAN Generator",
+    "description": "Generate realistic fake IBAN numbers for testing and development",
+    "icon": "🏦",
+    "category": "Generator",
+    "path": "/tools/fake-iban",
+    "metaTitle": "Fake IBAN Generator & Validator - Free Online Tool",
+    "metaDescription": "Generate realistic fake IBAN numbers for 30+ countries with valid check digits. Validate IBANs with detailed breakdown. MOD 97 compliant. Free online tool for testing.",
+    "faq": [
+      {
+        "question": "Are the generated IBANs real bank accounts?",
+        "answer": "No! These IBANs are completely fake and generated for testing purposes only. While they follow the correct format and pass MOD 97 validation, they do not correspond to any real bank accounts. Never use them for actual financial transactions."
+      },
+      {
+        "question": "How does the IBAN validation algorithm work?",
+        "answer": "IBAN validation uses the MOD 97 algorithm (ISO 7064). The country code and check digits are moved to the end, letters are converted to numbers (A=10, B=11...Z=35), and the resulting number is divided by 97. If the remainder is 1, the IBAN is valid."
+      },
+      {
+        "question": "Which countries are supported?",
+        "answer": "The tool supports 30+ countries including Germany, United Kingdom, France, Spain, Italy, Netherlands, Belgium, Austria, Switzerland, Poland, Portugal, Sweden, Norway, Denmark, Finland, Ireland, and many more European and international countries."
+      },
+      {
+        "question": "Can I use generated IBANs for software testing?",
+        "answer": "Yes! That's the primary purpose of this tool. The generated IBANs are perfect for testing payment forms, API integrations, database schemas, and any software that processes IBAN numbers. They have valid formats and check digits but don't link to real accounts."
+      }
+    ]
+  },
+  {
+    "id": "image-converter",
+    "name": "Image Format Converter",
+    "description": "Convert images between PNG, JPG, WebP, BMP, TIFF, GIF, and ICO formats",
+    "icon": "🔄",
+    "category": "Converter",
+    "path": "/tools/image-converter",
+    "metaTitle": "Image Format Converter - Convert PNG, JPG, WebP, BMP Online",
+    "metaDescription": "Free online image format converter. Convert between PNG, JPG, WebP, BMP, TIFF, GIF, and ICO formats. Adjustable quality. Fast server-side processing. No registration.",
+    "faq": [
+      {
+        "question": "Which image formats are supported?",
+        "answer": "The converter supports PNG, JPG/JPEG, WebP, BMP, TIFF, GIF, and ICO formats. You can convert from any of these formats to any other, making it a truly universal image converter."
+      },
+      {
+        "question": "Will I lose image quality during conversion?",
+        "answer": "It depends on the target format. Lossless formats like PNG and BMP preserve full quality. Lossy formats like JPG and WebP use compression — you can control quality with the slider (1-100). Higher values mean better quality but larger files."
+      },
+      {
+        "question": "What happens to transparency when converting to JPG?",
+        "answer": "JPG doesn't support transparency. When converting from PNG or WebP with transparent areas, the converter automatically replaces transparency with a white background to ensure a clean result."
+      },
+      {
+        "question": "What are the size limits for ICO conversion?",
+        "answer": "ICO format is typically used for website favicons. When converting to ICO, images larger than 256x256 pixels are automatically resized to fit the 256x256 maximum dimension while maintaining aspect ratio."
+      }
+    ]
+  },
+  {
+    "id": "images-to-pdf",
+    "name": "Images to PDF",
+    "description": "Combine multiple images into a single PDF document",
+    "icon": "📑",
+    "category": "Converter",
+    "path": "/tools/images-to-pdf",
+    "metaTitle": "Images to PDF - Combine Multiple Images into PDF",
+    "metaDescription": "Free online tool to combine multiple images into a single PDF. Drag to reorder pages. Supports PNG, JPG, WebP, BMP, TIFF, GIF. A4, Letter, or original size. Fast processing.",
+    "faq": [
+      {
+        "question": "Which image formats can I combine into a PDF?",
+        "answer": "You can use PNG, JPG/JPEG, WebP, BMP, TIFF, and GIF images. All formats are automatically converted to RGB for PDF compatibility. Images with transparency get a white background."
+      },
+      {
+        "question": "Can I reorder the pages before creating the PDF?",
+        "answer": "Yes! Simply drag and drop the image cards in the list to rearrange the page order. Each image becomes one page in the final PDF, in the exact order you set."
+      },
+      {
+        "question": "What page sizes are available?",
+        "answer": "Three options: A4 (210×297mm, standard international), Letter (8.5×11in, US standard), and Original Size (keeps each image's native dimensions). For A4 and Letter, images are scaled to fit and centered on the page."
+      },
+      {
+        "question": "Is there a limit on the number of images?",
+        "answer": "There's no hard limit on the number of images, but each file must be under 10MB. For best performance, we recommend combining up to 50 images at a time. The final PDF is generated server-side for reliable results."
+      }
+    ]
+  },
+  {
+    "id": "pdf-to-jpg",
+    "name": "PDF to JPG",
+    "description": "Convert PDF pages to high-quality JPG images",
+    "icon": "📄",
+    "category": "Converter",
+    "path": "/tools/pdf-to-jpg",
+    "metaTitle": "PDF to JPG - Convert PDF Pages to Images Online",
+    "metaDescription": "Free online PDF to JPG converter. Convert each PDF page to a high-quality JPG image. Choose DPI (72, 150, 300) and quality. Download individually or as ZIP. Fast processing.",
+    "faq": [
+      {
+        "question": "What quality settings should I use?",
+        "answer": "For web use and sharing, Medium (150 DPI) with 85% quality offers the best balance. For printing, use High (300 DPI) with 90-95% quality. Low (72 DPI) is fine for quick previews and thumbnails where file size matters most."
+      },
+      {
+        "question": "How are multi-page PDFs handled?",
+        "answer": "Each page of the PDF is converted to a separate JPG image. For multi-page PDFs, all images are packaged into a ZIP file for easy download. Single-page PDFs return a JPG file directly."
+      },
+      {
+        "question": "What are the file size and page limits?",
+        "answer": "The maximum PDF file size is 20MB, and the maximum number of pages is 50. These limits ensure fast processing and reliable results. For larger documents, consider splitting the PDF first."
+      },
+      {
+        "question": "Will the converted images preserve text quality?",
+        "answer": "Yes! The converter renders each page at the selected DPI, preserving text sharpness and image quality. Higher DPI settings produce sharper text but larger files. 150 DPI is sufficient for most on-screen viewing needs."
+      }
+    ]
+  },
+  {
+    "id": "pdf-split",
+    "name": "Split PDF",
+    "description": "Split PDF into individual pages or extract a custom range",
+    "icon": "✂️",
+    "category": "Converter",
+    "path": "/tools/pdf-split",
+    "metaTitle": "Split PDF Online - Extract Pages from PDF for Free",
+    "metaDescription": "Free online PDF splitter. Split PDF into individual pages or extract a custom page range. Fast server-side processing. Download as ZIP. No registration required.",
+    "faq": [
+      {
+        "question": "How does the PDF split tool work?",
+        "answer": "Upload your PDF file, choose to split all pages into individual PDFs or specify a custom page range (e.g., 1-3, 5, 7-9). The tool processes your file server-side and returns a ZIP archive containing the extracted pages as separate PDF files."
+      },
+      {
+        "question": "What is the maximum file size I can upload?",
+        "answer": "The maximum upload size is 50MB per file. This is sufficient for most documents including presentations, reports, and scanned documents. For very large files, consider compressing the PDF first."
+      },
+      {
+        "question": "Can I extract specific pages from a PDF?",
+        "answer": "Yes! Use the Custom Range mode and enter page numbers separated by commas and dashes. For example, '1-3, 5, 7-9' extracts pages 1 through 3, page 5, and pages 7 through 9 into a single PDF."
+      },
+      {
+        "question": "Is my PDF data secure when using this tool?",
+        "answer": "Files are processed server-side only for the duration of the split operation and are automatically deleted afterward. No files are stored permanently. For highly confidential documents, consider using offline tools."
+      }
+    ]
+  },
+  {
+    "id": "pdf-rotate",
+    "name": "Rotate PDF",
+    "description": "Rotate PDF pages by 90, 180, or 270 degrees clockwise",
+    "icon": "🔄",
+    "category": "Converter",
+    "path": "/tools/pdf-rotate",
+    "metaTitle": "Rotate PDF Pages Online - Free PDF Rotation Tool",
+    "metaDescription": "Free online PDF page rotator. Rotate all or specific pages by 90, 180, or 270 degrees clockwise. Fast server-side processing. Download rotated PDF instantly.",
+    "faq": [
+      {
+        "question": "Can I rotate only specific pages in a PDF?",
+        "answer": "Yes! You can choose to rotate all pages at once or specify individual pages by entering comma-separated page numbers (e.g., 1, 3, 5). Only the selected pages will be rotated while the rest remain unchanged."
+      },
+      {
+        "question": "What rotation angles are available?",
+        "answer": "The tool supports three rotation angles: 90° clockwise (quarter turn right), 180° (upside down), and 270° clockwise (quarter turn left). These cover all common rotation needs for fixing scanned documents or adjusting page orientation."
+      },
+      {
+        "question": "Will rotating affect the PDF quality or content?",
+        "answer": "No! Rotation is a lossless operation that only changes the page orientation metadata. All text, images, fonts, and formatting in the original PDF are preserved exactly as they are."
+      },
+      {
+        "question": "What is the maximum file size I can upload?",
+        "answer": "The maximum upload size is 50MB per file. This is sufficient for most documents including presentations, reports, and scanned documents. The tool processes files server-side for fast and reliable results."
+      }
+    ]
+  },
+  {
+    "id": "pdf-delete-pages",
+    "name": "Delete PDF Pages",
+    "description": "Remove specific pages from a PDF document",
+    "icon": "🗑️",
+    "category": "Converter",
+    "path": "/tools/pdf-delete-pages",
+    "metaTitle": "Delete PDF Pages Online - Remove Pages from PDF for Free",
+    "metaDescription": "Free online tool to delete specific pages from a PDF document. Enter page numbers to remove, preview changes, and download the result. Fast server-side processing. No registration required.",
+    "faq": [
+      {
+        "question": "How do I specify which pages to delete?",
+        "answer": "Enter page numbers separated by commas in the input field. For example, '2, 4, 6' will remove pages 2, 4, and 6 from the document. The remaining pages are automatically renumbered in the output PDF."
+      },
+      {
+        "question": "Can I delete a range of pages?",
+        "answer": "Currently the tool accepts individual page numbers separated by commas. To delete pages 3 through 7, enter '3, 4, 5, 6, 7'. The tool validates all page numbers against the actual page count of your PDF."
+      },
+      {
+        "question": "Will deleting pages affect the quality of remaining pages?",
+        "answer": "No! The deletion process preserves all content, formatting, fonts, and images on the remaining pages exactly as they are. Only the specified pages are removed from the document."
+      },
+      {
+        "question": "What is the maximum file size I can upload?",
+        "answer": "The maximum upload size is 50MB per file. This is sufficient for most documents including presentations, reports, and scanned documents. The tool processes files server-side for fast and reliable results."
+      }
+    ]
+  },
+  {
+    "id": "pdf-unlock",
+    "name": "Unlock PDF",
+    "description": "Remove password protection from an encrypted PDF document",
+    "icon": "🔓",
+    "category": "Converter",
+    "path": "/tools/pdf-unlock",
+    "metaTitle": "Unlock PDF Online - Remove PDF Password Protection for Free",
+    "metaDescription": "Free online PDF unlocker. Remove password protection from encrypted PDF files. Enter the password and download the unlocked PDF instantly. Fast server-side processing. No registration required.",
+    "faq": [
+      {
+        "question": "How does the PDF unlock tool work?",
+        "answer": "Upload your password-protected PDF, enter the document password, and click Unlock. The tool decrypts the PDF server-side and returns an unprotected version that you can open without a password. The original encryption is removed while preserving all content."
+      },
+      {
+        "question": "Can this tool crack or bypass PDF passwords?",
+        "answer": "No. This tool requires you to know the correct password. It removes the encryption from the PDF so you can save an unlocked copy for convenience. It does not crack, guess, or bypass unknown passwords."
+      },
+      {
+        "question": "Is my PDF data secure when using this tool?",
+        "answer": "Files are processed server-side only for the duration of the unlock operation and are automatically deleted afterward. No files or passwords are stored permanently. For highly confidential documents, consider using offline tools."
+      },
+      {
+        "question": "What is the maximum file size I can upload?",
+        "answer": "The maximum upload size is 50MB per file. This is sufficient for most encrypted documents including presentations, reports, and scanned documents. The tool processes files server-side for fast and reliable results."
+      }
+    ]
+  },
+  {
+    "id": "pdf-tools",
+    "name": "PDF Tools",
+    "description": "All-in-one PDF toolkit — split, merge, rotate, protect and more",
+    "icon": "📄",
+    "category": "Converter",
+    "path": "/tools/pdf-tools",
+    "metaTitle": "Free PDF Tools Online - Split, Merge, Rotate, Protect PDF",
+    "metaDescription": "Free online PDF toolkit. Split, merge, rotate, reorder, delete pages, protect and unlock PDF files. Fast server-side processing. No registration required.",
+    "faq": [
+      {
+        "question": "What PDF tools are available?",
+        "answer": "The toolkit includes 9 tools: Split PDF, Merge PDF, Rotate PDF, Delete Pages, Reorder Pages, Protect PDF, Unlock PDF, PDF to JPG, and Images to PDF. All tools are free with no registration required."
+      },
+      {
+        "question": "Are my PDF files secure when using these tools?",
+        "answer": "Files are processed server-side only for the duration of each operation and are automatically deleted afterward. No files are stored permanently on our servers. For highly confidential documents, consider using offline alternatives."
+      },
+      {
+        "question": "What is the maximum file size I can upload?",
+        "answer": "Most PDF tools support files up to 50MB. The PDF to JPG converter supports files up to 20MB with a maximum of 50 pages. These limits ensure fast processing and reliable results."
+      },
+      {
+        "question": "Do these tools preserve PDF quality?",
+        "answer": "Yes! All operations (split, merge, rotate, reorder, delete pages, protect, unlock) are lossless and preserve all content, formatting, fonts, and images exactly as they are in the original document."
+      }
+    ]
+  },
+  {
+    "id": "pdf-reorder",
+    "name": "Reorder PDF Pages",
+    "description": "Rearrange PDF pages in any order using drag and drop",
+    "icon": "📋",
+    "category": "Converter",
+    "path": "/tools/pdf-reorder",
+    "metaTitle": "Reorder PDF Pages Online - Rearrange Pages for Free",
+    "metaDescription": "Free online PDF page reorder tool. Drag and drop to rearrange pages in any order. Fast server-side processing. Download reordered PDF instantly. No registration required.",
+    "faq": [
+      {
+        "question": "How do I reorder pages in a PDF?",
+        "answer": "Upload your PDF file, and the tool will display numbered page cards. Simply drag and drop the cards to rearrange them in your desired order, then click Apply New Order to generate the reordered PDF."
+      },
+      {
+        "question": "Will reordering affect the PDF quality?",
+        "answer": "No! Page reordering is a lossless operation. All text, images, fonts, and formatting on each page are preserved exactly as they are. Only the page sequence changes."
+      },
+      {
+        "question": "Can I move a page from the end to the beginning?",
+        "answer": "Yes! You can drag any page to any position. The drag and drop interface makes it easy to move pages anywhere in the document, whether it's moving the last page to the front or rearranging pages in the middle."
+      },
+      {
+        "question": "What is the maximum file size I can upload?",
+        "answer": "The maximum upload size is 50MB per file. This is sufficient for most documents. The tool processes files server-side for fast and reliable results."
+      }
+    ]
+  },
+  {
+    "id": "pdf-protect",
+    "name": "Protect PDF",
+    "description": "Encrypt PDF with a password to restrict access",
+    "icon": "🔒",
+    "category": "Converter",
+    "path": "/tools/pdf-protect",
+    "metaTitle": "Protect PDF with Password Online - Encrypt PDF for Free",
+    "metaDescription": "Free online PDF encryption tool. Protect your PDF files with a password. Strong encryption to restrict unauthorized access. Fast server-side processing. No registration required.",
+    "faq": [
+      {
+        "question": "How does PDF password protection work?",
+        "answer": "Upload your PDF and set a password. The tool encrypts the file server-side using standard PDF encryption. Anyone trying to open the protected PDF will need to enter the correct password first."
+      },
+      {
+        "question": "How strong should my password be?",
+        "answer": "Use at least 4 characters, but longer passwords with a mix of letters, numbers, and symbols are more secure. Avoid common words or predictable patterns. The tool requires a minimum of 4 characters."
+      },
+      {
+        "question": "Can I remove the password later?",
+        "answer": "Yes! Use the Unlock PDF tool to remove password protection. You'll need to know the current password to decrypt the file and save an unprotected copy."
+      },
+      {
+        "question": "Is my PDF data secure during encryption?",
+        "answer": "Files are processed server-side only for the duration of the encryption operation and are automatically deleted afterward. Neither your files nor passwords are stored permanently on our servers."
+      }
+    ]
+  }
+]

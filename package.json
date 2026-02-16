@@ -1,0 +1,24 @@
+{
+  "name": "moletools",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.0",
+    "@astrojs/tailwind": "^5.1.0",
+    "astro": "^4.16.0",
+    "qrcode": "^1.5.3",
+    "tailwindcss": "^3.4.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.5.0",
+    "typescript": "^5.3.3"
+  }
+}

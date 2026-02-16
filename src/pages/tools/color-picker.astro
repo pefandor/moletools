@@ -1,0 +1,367 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'color-picker');
+const title = tool?.metaTitle || 'Color Picker & Converter';
+const description = tool?.metaDescription || 'Convert colors between HEX, RGB, and HSL formats';
+
+// JSON-LD Schema
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: tool?.name || 'Color Picker & Converter',
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      description: tool?.metaDescription || description,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD'
+      }
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: (tool?.faq || []).map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    }
+  ]
+};
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        {tool?.icon} {tool?.name || 'Color Picker & Converter'}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        {tool?.description || 'Convert colors between HEX, RGB, and HSL formats'}
+      </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+      <!-- Color Preview -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color Preview</label>
+        <div id="color-preview" class="w-full h-32 rounded-lg border-2 border-gray-300 dark:border-gray-600" style="background-color: #3B82F6;"></div>
+      </div>
+
+      <!-- Color Input Fields -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- HEX -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">HEX</label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="hex-input"
+              value="#3B82F6"
+              class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono"
+              placeholder="#000000"
+            />
+            <button
+              id="copy-hex"
+              class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:bg-gray-600 transition-colors"
+              title="Copy HEX"
+            >
+              📋
+            </button>
+          </div>
+        </div>
+
+        <!-- RGB -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">RGB</label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="rgb-input"
+              value="59, 130, 246"
+              class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono"
+              placeholder="255, 255, 255"
+            />
+            <button
+              id="copy-rgb"
+              class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:bg-gray-600 transition-colors"
+              title="Copy RGB"
+            >
+              📋
+            </button>
+          </div>
+        </div>
+
+        <!-- HSL -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">HSL</label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="hsl-input"
+              value="217, 91%, 60%"
+              class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono"
+              placeholder="0, 100%, 50%"
+            />
+            <button
+              id="copy-hsl"
+              class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:bg-gray-600 transition-colors"
+              title="Copy HSL"
+            >
+              📋
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Color History -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Recent Colors (Last 10)</label>
+        <div id="color-history" class="flex flex-wrap gap-2">
+          <!-- Will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    {tool?.faq && tool.faq.length > 0 && (
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4">
+          {tool.faq.map((item) => (
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.question}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{item.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <script>
+    (function() {
+      var hexInput = document.getElementById('hex-input');
+      var rgbInput = document.getElementById('rgb-input');
+      var hslInput = document.getElementById('hsl-input');
+      var colorPreview = document.getElementById('color-preview');
+      var colorHistory = document.getElementById('color-history');
+      var copyHex = document.getElementById('copy-hex');
+      var copyRgb = document.getElementById('copy-rgb');
+      var copyHsl = document.getElementById('copy-hsl');
+
+      var recentColors = [];
+      var isUpdating = false;
+
+      // Color conversion functions
+      function hexToRgb(hex) {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16)
+        } : null;
+      }
+
+      function rgbToHex(r, g, b) {
+        return '#' + [r, g, b].map(function(x) {
+          var hex = x.toString(16);
+          return hex.length === 1 ? '0' + hex : hex;
+        }).join('');
+      }
+
+      function rgbToHsl(r, g, b) {
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        var max = Math.max(r, g, b);
+        var min = Math.min(r, g, b);
+        var h, s, l = (max + min) / 2;
+
+        if (max === min) {
+          h = s = 0;
+        } else {
+          var d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+            case g: h = ((b - r) / d + 2) / 6; break;
+            case b: h = ((r - g) / d + 4) / 6; break;
+          }
+        }
+
+        return {
+          h: Math.round(h * 360),
+          s: Math.round(s * 100),
+          l: Math.round(l * 100)
+        };
+      }
+
+      function hslToRgb(h, s, l) {
+        h /= 360;
+        s /= 100;
+        l /= 100;
+        var r, g, b;
+
+        if (s === 0) {
+          r = g = b = l;
+        } else {
+          var hue2rgb = function(p, q, t) {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1/6) return p + (q - p) * 6 * t;
+            if (t < 1/2) return q;
+            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+          };
+
+          var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+          var p = 2 * l - q;
+          r = hue2rgb(p, q, h + 1/3);
+          g = hue2rgb(p, q, h);
+          b = hue2rgb(p, q, h - 1/3);
+        }
+
+        return {
+          r: Math.round(r * 255),
+          g: Math.round(g * 255),
+          b: Math.round(b * 255)
+        };
+      }
+
+      function updateFromHex(hex) {
+        if (isUpdating) return;
+        isUpdating = true;
+
+        var rgb = hexToRgb(hex);
+        if (rgb) {
+          var hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+          rgbInput.value = rgb.r + ', ' + rgb.g + ', ' + rgb.b;
+          hslInput.value = hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%';
+          colorPreview.style.backgroundColor = hex;
+          addToHistory(hex);
+        }
+
+        isUpdating = false;
+      }
+
+      function updateFromRgb(rgbStr) {
+        if (isUpdating) return;
+        isUpdating = true;
+
+        var parts = rgbStr.split(',').map(function(s) { return parseInt(s.trim()); });
+        if (parts.length === 3 && parts.every(function(n) { return !isNaN(n) && n >= 0 && n <= 255; })) {
+          var hex = rgbToHex(parts[0], parts[1], parts[2]);
+          var hsl = rgbToHsl(parts[0], parts[1], parts[2]);
+          hexInput.value = hex;
+          hslInput.value = hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%';
+          colorPreview.style.backgroundColor = hex;
+          addToHistory(hex);
+        }
+
+        isUpdating = false;
+      }
+
+      function updateFromHsl(hslStr) {
+        if (isUpdating) return;
+        isUpdating = true;
+
+        var parts = hslStr.split(',').map(function(s) { return parseFloat(s.trim().replace('%', '')); });
+        if (parts.length === 3 && parts.every(function(n) { return !isNaN(n); })) {
+          var rgb = hslToRgb(parts[0], parts[1], parts[2]);
+          var hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+          hexInput.value = hex;
+          rgbInput.value = rgb.r + ', ' + rgb.g + ', ' + rgb.b;
+          colorPreview.style.backgroundColor = hex;
+          addToHistory(hex);
+        }
+
+        isUpdating = false;
+      }
+
+      function addToHistory(hex) {
+        if (!recentColors.includes(hex)) {
+          recentColors.unshift(hex);
+          if (recentColors.length > 10) {
+            recentColors.pop();
+          }
+          renderHistory();
+        }
+      }
+
+      function renderHistory() {
+        colorHistory.innerHTML = '';
+        recentColors.forEach(function(color) {
+          var div = document.createElement('div');
+          div.className = 'w-12 h-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer hover:scale-110 transition-transform';
+          div.style.backgroundColor = color;
+          div.title = color;
+          div.addEventListener('click', function() {
+            hexInput.value = color;
+            updateFromHex(color);
+          });
+          colorHistory.appendChild(div);
+        });
+      }
+
+      // Event listeners
+      if (hexInput) {
+        hexInput.addEventListener('input', function() {
+          var value = hexInput.value.trim();
+          if (/^#[0-9A-F]{6}$/i.test(value)) {
+            updateFromHex(value);
+          }
+        });
+      }
+
+      if (rgbInput) {
+        rgbInput.addEventListener('input', function() {
+          updateFromRgb(rgbInput.value);
+        });
+      }
+
+      if (hslInput) {
+        hslInput.addEventListener('input', function() {
+          updateFromHsl(hslInput.value);
+        });
+      }
+
+      // Copy buttons
+      if (copyHex) {
+        copyHex.addEventListener('click', function() {
+          navigator.clipboard.writeText(hexInput.value);
+          copyHex.textContent = '✓';
+          setTimeout(function() { copyHex.textContent = '📋'; }, 2000);
+        });
+      }
+
+      if (copyRgb) {
+        copyRgb.addEventListener('click', function() {
+          navigator.clipboard.writeText('rgb(' + rgbInput.value + ')');
+          copyRgb.textContent = '✓';
+          setTimeout(function() { copyRgb.textContent = '📋'; }, 2000);
+        });
+      }
+
+      if (copyHsl) {
+        copyHsl.addEventListener('click', function() {
+          navigator.clipboard.writeText('hsl(' + hslInput.value + ')');
+          copyHsl.textContent = '✓';
+          setTimeout(function() { copyHsl.textContent = '📋'; }, 2000);
+        });
+      }
+
+      // Initialize with default color
+      addToHistory('#3B82F6');
+    })();
+  </script>
+</Layout>

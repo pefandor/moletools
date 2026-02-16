@@ -1,0 +1,188 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'word-counter');
+const title = tool?.metaTitle || 'Word & Character Counter';
+const description = tool?.metaDescription || 'Count words, characters, sentences, and paragraphs';
+
+// JSON-LD Schema
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: tool?.name || 'Word & Character Counter',
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      description: tool?.metaDescription || description,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD'
+      }
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: (tool?.faq || []).map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    }
+  ]
+};
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        {tool?.icon} {tool?.name || 'Word & Character Counter'}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        {tool?.description || 'Count words, characters, sentences, and paragraphs'}
+      </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+      <!-- Statistics Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div class="bg-blue-50 rounded-lg p-4">
+          <div class="text-2xl font-bold text-blue-600" id="char-count">0</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Characters</div>
+        </div>
+        <div class="bg-green-50 rounded-lg p-4">
+          <div class="text-2xl font-bold text-green-600" id="char-no-space-count">0</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">No Spaces</div>
+        </div>
+        <div class="bg-purple-50 rounded-lg p-4">
+          <div class="text-2xl font-bold text-purple-600" id="word-count">0</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Words</div>
+        </div>
+        <div class="bg-yellow-50 rounded-lg p-4">
+          <div class="text-2xl font-bold text-yellow-600" id="sentence-count">0</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Sentences</div>
+        </div>
+        <div class="bg-pink-50 rounded-lg p-4">
+          <div class="text-2xl font-bold text-pink-600" id="paragraph-count">0</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Paragraphs</div>
+        </div>
+        <div class="bg-indigo-50 rounded-lg p-4">
+          <div class="text-2xl font-bold text-indigo-600" id="reading-time">0</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Min Read</div>
+        </div>
+      </div>
+
+      <!-- Text Input -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Enter or Paste Your Text</label>
+        <textarea
+          id="text-input"
+          rows="12"
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-y"
+          placeholder="Start typing or paste your text here..."
+        ></textarea>
+      </div>
+
+      <!-- Clear Button -->
+      <button
+        id="clear-btn"
+        class="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+      >
+        Clear
+      </button>
+    </div>
+
+    <!-- FAQ Section -->
+    {tool?.faq && tool.faq.length > 0 && (
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4">
+          {tool.faq.map((item) => (
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.question}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{item.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <script>
+    (function() {
+      var textInput = document.getElementById('text-input');
+      var charCount = document.getElementById('char-count');
+      var charNoSpaceCount = document.getElementById('char-no-space-count');
+      var wordCount = document.getElementById('word-count');
+      var sentenceCount = document.getElementById('sentence-count');
+      var paragraphCount = document.getElementById('paragraph-count');
+      var readingTime = document.getElementById('reading-time');
+      var clearBtn = document.getElementById('clear-btn');
+
+      function updateStats() {
+        var text = textInput.value;
+
+        // Characters (total)
+        var chars = text.length;
+        charCount.textContent = chars;
+
+        // Characters (no spaces)
+        var charsNoSpace = text.replace(/\s/g, '').length;
+        charNoSpaceCount.textContent = charsNoSpace;
+
+        // Words
+        var words = text.trim().length === 0 ? 0 : text.trim().split(/\s+/).length;
+        wordCount.textContent = words;
+
+        // Sentences (count periods, exclamation marks, question marks)
+        var sentences = 0;
+        if (text.trim().length > 0) {
+          var sentenceMatch = text.match(/[.!?]+/g);
+          sentences = sentenceMatch ? sentenceMatch.length : 0;
+          // If text exists but no sentence terminators, count as 1 sentence
+          if (sentences === 0 && text.trim().length > 0) {
+            sentences = 1;
+          }
+        }
+        sentenceCount.textContent = sentences;
+
+        // Paragraphs (split by double newline or single newline)
+        var paragraphs = 0;
+        if (text.trim().length > 0) {
+          var paraArray = text.split(/\n+/).filter(function(p) {
+            return p.trim().length > 0;
+          });
+          paragraphs = paraArray.length;
+        }
+        paragraphCount.textContent = paragraphs;
+
+        // Reading time (average 200 words per minute)
+        var minutes = Math.ceil(words / 200);
+        readingTime.textContent = minutes;
+      }
+
+      // Event listeners
+      if (textInput) {
+        textInput.addEventListener('input', updateStats);
+      }
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+          textInput.value = '';
+          updateStats();
+          textInput.focus();
+        });
+      }
+
+      // Initialize
+      updateStats();
+    })();
+  </script>
+</Layout>

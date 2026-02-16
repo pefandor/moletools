@@ -1,0 +1,174 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'url-encoder');
+const title = tool?.metaTitle || 'URL Encoder/Decoder';
+const description = tool?.metaDescription || 'Encode and decode URL strings';
+
+// JSON-LD Schema
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: tool?.name || 'URL Encoder/Decoder',
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      description: tool?.metaDescription || description,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD'
+      }
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: (tool?.faq || []).map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    }
+  ]
+};
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        {tool?.icon} {tool?.name || 'URL Encoder/Decoder'}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        {tool?.description || 'Encode and decode URL strings'}
+      </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+      <!-- Input -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Input</label>
+        <textarea
+          id="input"
+          rows="6"
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-y font-mono text-sm"
+          placeholder="Enter text to encode or decode..."
+        ></textarea>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button
+          id="encode-btn"
+          class="px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+        >
+          Encode
+        </button>
+        <button
+          id="decode-btn"
+          class="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+        >
+          Decode
+        </button>
+        <button
+          id="swap-btn"
+          class="px-6 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:bg-gray-600 transition-colors"
+        >
+          ⇅ Swap
+        </button>
+        <button
+          id="copy-btn"
+          class="px-6 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:bg-gray-600 transition-colors"
+        >
+          📋 Copy Result
+        </button>
+      </div>
+
+      <!-- Output -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Result</label>
+        <textarea
+          id="output"
+          rows="6"
+          readonly
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 resize-y font-mono text-sm"
+          placeholder="Result will appear here..."
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    {tool?.faq && tool.faq.length > 0 && (
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4">
+          {tool.faq.map((item) => (
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.question}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{item.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <script>
+    (function() {
+      var inputField = document.getElementById('input');
+      var outputField = document.getElementById('output');
+      var encodeBtn = document.getElementById('encode-btn');
+      var decodeBtn = document.getElementById('decode-btn');
+      var swapBtn = document.getElementById('swap-btn');
+      var copyBtn = document.getElementById('copy-btn');
+
+      if (encodeBtn) {
+        encodeBtn.addEventListener('click', function() {
+          try {
+            var input = inputField.value;
+            var encoded = encodeURIComponent(input);
+            outputField.value = encoded;
+          } catch (e) {
+            outputField.value = 'Error: ' + e.message;
+          }
+        });
+      }
+
+      if (decodeBtn) {
+        decodeBtn.addEventListener('click', function() {
+          try {
+            var input = inputField.value;
+            var decoded = decodeURIComponent(input);
+            outputField.value = decoded;
+          } catch (e) {
+            outputField.value = 'Error: Invalid URL encoding';
+          }
+        });
+      }
+
+      if (swapBtn) {
+        swapBtn.addEventListener('click', function() {
+          var temp = inputField.value;
+          inputField.value = outputField.value;
+          outputField.value = temp;
+        });
+      }
+
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+          if (outputField.value) {
+            navigator.clipboard.writeText(outputField.value);
+            copyBtn.textContent = '✓ Copied';
+            setTimeout(function() { copyBtn.textContent = '📋 Copy Result'; }, 2000);
+          }
+        });
+      }
+    })();
+  </script>
+</Layout>

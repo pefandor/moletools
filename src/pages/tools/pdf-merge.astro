@@ -1,0 +1,416 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FAQ from '../../components/FAQ.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'pdf-merge')!;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD'
+  },
+  browserRequirements: 'Requires JavaScript',
+  permissions: 'No special permissions required'
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: tool.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer
+    }
+  }))
+};
+
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+---
+
+<Layout title={tool.metaTitle} description={tool.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">📑 PDF Merge Tool</h1>
+      <p class="text-gray-600 dark:text-gray-400">Merge multiple PDF files into a single document</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+      <!-- Drag and Drop Zone -->
+      <div
+        id="dropZone"
+        class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-12 text-center hover:border-primary-500 dark:hover:border-primary-400 transition-colors"
+      >
+        <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+          <path d="M8 14v20c0 4.418 7.163 8 16 8 1.381 0 2.721-.087 4-.252M8 14c0 4.418 7.163 8 16 8s16-3.582 16-8M8 14c0-4.418 7.163-8 16-8s16 3.582 16 8m0 0v14m0-4c0 4.418-7.163 8-16 8S8 28.418 8 24m32 10v6m0 0v6m0-6h6m-6 0h-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <div class="mt-4">
+          <label for="fileInput" class="inline-block px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 cursor-pointer transition-colors">
+            Choose PDFs
+          </label>
+          <input
+            type="file"
+            id="fileInput"
+            accept="application/pdf"
+            multiple
+            class="hidden"
+          />
+          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">or drag and drop multiple PDFs here</p>
+          <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">PDF files only, at least 2 files required</p>
+        </div>
+      </div>
+
+      <!-- File List -->
+      <div id="fileList" class="hidden space-y-3">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">
+            <span id="fileCount">0</span> PDF(s) selected
+          </h3>
+          <button
+            id="clearAll"
+            class="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+          >
+            Clear All
+          </button>
+        </div>
+        <div id="files" class="space-y-2">
+          <!-- Files will be added here dynamically -->
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div id="progressContainer" class="hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Merging PDFs...</span>
+          <span class="text-sm text-gray-600 dark:text-gray-400" id="progressText">0%</span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+          <div id="progressBar" class="bg-primary-600 dark:bg-primary-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div id="error" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <div class="flex">
+          <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="ml-3 text-sm text-red-800 dark:text-red-200" id="errorMessage"></p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex space-x-3">
+        <button
+          id="mergeBtn"
+          disabled
+          class="flex-1 px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
+        >
+          Merge PDFs
+        </button>
+        <button
+          id="downloadBtn"
+          class="hidden px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+        >
+          Download Merged PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <FAQ items={tool.faq} />
+  </div>
+</Layout>
+
+<script define:vars={{ API_URL }}>
+  var selectedFiles = [];
+  var mergedBlob = null;
+
+  var dropZone = document.getElementById('dropZone');
+  var fileInput = document.getElementById('fileInput');
+  var fileList = document.getElementById('fileList');
+  var fileCount = document.getElementById('fileCount');
+  var filesContainer = document.getElementById('files');
+  var clearAll = document.getElementById('clearAll');
+  var mergeBtn = document.getElementById('mergeBtn');
+  var downloadBtn = document.getElementById('downloadBtn');
+  var progressContainer = document.getElementById('progressContainer');
+  var progressBar = document.getElementById('progressBar');
+  var progressText = document.getElementById('progressText');
+  var error = document.getElementById('error');
+  var errorMessage = document.getElementById('errorMessage');
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFiles(Array.from(e.target.files));
+      }
+    });
+  }
+
+  if (dropZone) {
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.add('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/10');
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.remove('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/10');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.remove('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/10');
+
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFiles(Array.from(e.dataTransfer.files));
+      }
+    });
+  }
+
+  if (clearAll) {
+    clearAll.addEventListener('click', function() {
+      resetUpload();
+    });
+  }
+
+  function handleFiles(files) {
+    hideError();
+
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+
+      if (file.type !== 'application/pdf') {
+        showError('Only PDF files are allowed: ' + file.name);
+        continue;
+      }
+
+      selectedFiles.push(file);
+    }
+
+    updateFileList();
+    updateMergeButton();
+  }
+
+  function updateFileList() {
+    if (selectedFiles.length === 0) {
+      if (fileList) fileList.classList.add('hidden');
+      if (dropZone) dropZone.style.display = 'block';
+      return;
+    }
+
+    if (fileList) fileList.classList.remove('hidden');
+    if (dropZone) dropZone.style.display = 'none';
+    if (fileCount) fileCount.textContent = selectedFiles.length.toString();
+
+    if (!filesContainer) return;
+    filesContainer.innerHTML = '';
+
+    selectedFiles.forEach(function(file, index) {
+      var fileDiv = document.createElement('div');
+      fileDiv.className = 'flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg';
+
+      var leftDiv = document.createElement('div');
+      leftDiv.className = 'flex items-center space-x-3 flex-1';
+
+      var iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      iconSvg.setAttribute('class', 'h-8 w-8 text-red-600 dark:text-red-400');
+      iconSvg.setAttribute('fill', 'none');
+      iconSvg.setAttribute('stroke', 'currentColor');
+      iconSvg.setAttribute('viewBox', '0 0 24 24');
+      var iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      iconPath.setAttribute('stroke-linecap', 'round');
+      iconPath.setAttribute('stroke-linejoin', 'round');
+      iconPath.setAttribute('stroke-width', '2');
+      iconPath.setAttribute('d', 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z');
+      iconSvg.appendChild(iconPath);
+
+      var textDiv = document.createElement('div');
+      textDiv.className = 'flex-1';
+
+      var namePara = document.createElement('p');
+      namePara.className = 'text-sm font-medium text-gray-900 dark:text-gray-100';
+      namePara.textContent = file.name;
+
+      var sizePara = document.createElement('p');
+      sizePara.className = 'text-xs text-gray-500 dark:text-gray-400';
+      sizePara.textContent = formatBytes(file.size);
+
+      textDiv.appendChild(namePara);
+      textDiv.appendChild(sizePara);
+
+      leftDiv.appendChild(iconSvg);
+      leftDiv.appendChild(textDiv);
+
+      var buttonDiv = document.createElement('div');
+      buttonDiv.className = 'flex items-center space-x-2';
+
+      // Up button
+      if (index > 0) {
+        var upBtn = document.createElement('button');
+        upBtn.className = 'p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300';
+        upBtn.innerHTML = '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>';
+        upBtn.addEventListener('click', function() {
+          moveFile(index, -1);
+        });
+        buttonDiv.appendChild(upBtn);
+      }
+
+      // Down button
+      if (index < selectedFiles.length - 1) {
+        var downBtn = document.createElement('button');
+        downBtn.className = 'p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300';
+        downBtn.innerHTML = '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>';
+        downBtn.addEventListener('click', function() {
+          moveFile(index, 1);
+        });
+        buttonDiv.appendChild(downBtn);
+      }
+
+      // Remove button
+      var removeBtn = document.createElement('button');
+      removeBtn.className = 'p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400';
+      removeBtn.innerHTML = '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>';
+      removeBtn.addEventListener('click', function() {
+        removeFile(index);
+      });
+      buttonDiv.appendChild(removeBtn);
+
+      fileDiv.appendChild(leftDiv);
+      fileDiv.appendChild(buttonDiv);
+      filesContainer.appendChild(fileDiv);
+    });
+  }
+
+  function moveFile(index, direction) {
+    var newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= selectedFiles.length) return;
+
+    var temp = selectedFiles[index];
+    selectedFiles[index] = selectedFiles[newIndex];
+    selectedFiles[newIndex] = temp;
+
+    updateFileList();
+  }
+
+  function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    updateFileList();
+    updateMergeButton();
+
+    if (selectedFiles.length === 0) {
+      resetUpload();
+    }
+  }
+
+  function updateMergeButton() {
+    if (mergeBtn) {
+      mergeBtn.disabled = selectedFiles.length < 2;
+    }
+  }
+
+  function resetUpload() {
+    selectedFiles = [];
+    mergedBlob = null;
+    if (fileInput) fileInput.value = '';
+    if (dropZone) dropZone.style.display = 'block';
+    if (fileList) fileList.classList.add('hidden');
+    if (mergeBtn) mergeBtn.disabled = true;
+    if (downloadBtn) downloadBtn.classList.add('hidden');
+    if (progressContainer) progressContainer.classList.add('hidden');
+    hideError();
+  }
+
+  if (mergeBtn) {
+    mergeBtn.addEventListener('click', async function() {
+      if (selectedFiles.length < 2) {
+        showError('Please select at least 2 PDF files');
+        return;
+      }
+
+      hideError();
+      if (progressContainer) progressContainer.classList.remove('hidden');
+      mergeBtn.disabled = true;
+      if (downloadBtn) downloadBtn.classList.add('hidden');
+
+      try {
+        var formData = new FormData();
+        for (var i = 0; i < selectedFiles.length; i++) {
+          formData.append('files', selectedFiles[i]);
+        }
+
+        var response = await fetch(API_URL + '/pdf/merge', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          var errorData = await response.json().catch(function() { return {}; });
+          throw new Error(errorData.detail || 'Server error: ' + response.status);
+        }
+
+        mergedBlob = await response.blob();
+
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressText) progressText.textContent = '100%';
+
+        setTimeout(function() {
+          if (progressContainer) progressContainer.classList.add('hidden');
+          if (downloadBtn) downloadBtn.classList.remove('hidden');
+        }, 500);
+
+      } catch (err) {
+        showError(err.message || 'Merge failed. Please try again.');
+        updateMergeButton();
+        if (progressContainer) progressContainer.classList.add('hidden');
+      }
+    });
+  }
+
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', function() {
+      if (!mergedBlob) return;
+
+      var url = URL.createObjectURL(mergedBlob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'merged.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    var k = 1024;
+    var sizes = ['Bytes', 'KB', 'MB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  function showError(message) {
+    if (errorMessage) errorMessage.textContent = message;
+    if (error) error.classList.remove('hidden');
+  }
+
+  function hideError() {
+    if (error) error.classList.add('hidden');
+  }
+</script>

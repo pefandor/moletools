@@ -1,0 +1,220 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FAQ from '../../components/FAQ.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'base64')!;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD'
+  },
+  browserRequirements: 'Requires JavaScript',
+  permissions: 'No special permissions required'
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: tool.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer
+    }
+  }))
+};
+---
+
+<Layout title={tool.metaTitle} description={tool.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">🔐 Base64 Encoder/Decoder</h1>
+      <p class="text-gray-600 dark:text-gray-400">Encode and decode Base64 strings</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+      <!-- Mode Toggle -->
+      <div class="flex items-center space-x-4">
+        <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+          <button
+            id="encodeTab"
+            class="px-4 py-2 rounded-md text-sm font-medium bg-white dark:bg-gray-800 shadow-sm text-primary-700 dark:text-primary-400"
+          >
+            Encode
+          </button>
+          <button
+            id="decodeTab"
+            class="px-4 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Decode
+          </button>
+        </div>
+        <button
+          id="copyBtn"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
+          Copy Result
+        </button>
+      </div>
+
+      <!-- Encode Section -->
+      <div id="encodeSection">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Text to Encode</label>
+          <textarea
+            id="textInput"
+            rows="8"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+            placeholder="Enter text to encode..."
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Base64 Encoded</label>
+          <textarea
+            id="base64Output"
+            rows="8"
+            readonly
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Decode Section -->
+      <div id="decodeSection" class="hidden">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Base64 to Decode</label>
+          <textarea
+            id="base64Input"
+            rows="8"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+            placeholder="Enter Base64 string to decode..."
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Decoded Text</label>
+          <textarea
+            id="textOutput"
+            rows="8"
+            readonly
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Error message -->
+      <div id="error" class="hidden text-red-600 text-sm"></div>
+    </div>
+
+    <!-- FAQ Section -->
+    <FAQ items={tool.faq} />
+  </div>
+</Layout>
+
+<script>
+  const encodeTab = document.getElementById('encodeTab');
+  const decodeTab = document.getElementById('decodeTab');
+  const encodeSection = document.getElementById('encodeSection');
+  const decodeSection = document.getElementById('decodeSection');
+  const textInput = document.getElementById('textInput');
+  const base64Output = document.getElementById('base64Output');
+  const base64Input = document.getElementById('base64Input');
+  const textOutput = document.getElementById('textOutput');
+  const copyBtn = document.getElementById('copyBtn');
+  const errorDiv = document.getElementById('error');
+
+  let currentMode = 'encode';
+
+  function showError(message) {
+    if (errorDiv) {
+      errorDiv.textContent = message;
+      errorDiv.classList.remove('hidden');
+    }
+  }
+
+  function hideError() {
+    if (errorDiv) {
+      errorDiv.classList.add('hidden');
+    }
+  }
+
+  function switchMode(mode: 'encode' | 'decode') {
+    currentMode = mode;
+    hideError();
+
+    if (mode === 'encode') {
+      encodeTab?.classList.add('bg-white', 'shadow-sm', 'text-primary-700');
+      encodeTab?.classList.remove('text-gray-700');
+      decodeTab?.classList.remove('bg-white', 'shadow-sm', 'text-primary-700');
+      decodeTab?.classList.add('text-gray-700');
+      encodeSection?.classList.remove('hidden');
+      decodeSection?.classList.add('hidden');
+    } else {
+      decodeTab?.classList.add('bg-white', 'shadow-sm', 'text-primary-700');
+      decodeTab?.classList.remove('text-gray-700');
+      encodeTab?.classList.remove('bg-white', 'shadow-sm', 'text-primary-700');
+      encodeTab?.classList.add('text-gray-700');
+      decodeSection?.classList.remove('hidden');
+      encodeSection?.classList.add('hidden');
+    }
+  }
+
+  encodeTab?.addEventListener('click', () => switchMode('encode'));
+  decodeTab?.addEventListener('click', () => switchMode('decode'));
+
+  // Auto encode
+  textInput?.addEventListener('input', () => {
+    try {
+      hideError();
+      const text = textInput.value;
+      base64Output.value = btoa(unescape(encodeURIComponent(text)));
+    } catch (error) {
+      showError('Encoding failed');
+      base64Output.value = '';
+    }
+  });
+
+  // Auto decode
+  base64Input?.addEventListener('input', () => {
+    try {
+      hideError();
+      const base64 = base64Input.value.trim();
+      if (!base64) {
+        textOutput.value = '';
+        return;
+      }
+      textOutput.value = decodeURIComponent(escape(atob(base64)));
+    } catch (error) {
+      showError('Invalid Base64 string');
+      textOutput.value = '';
+    }
+  });
+
+  // Copy button
+  copyBtn?.addEventListener('click', async () => {
+    try {
+      const textToCopy = currentMode === 'encode' ? base64Output.value : textOutput.value;
+      await navigator.clipboard.writeText(textToCopy);
+      const originalText = copyBtn.textContent;
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        copyBtn.textContent = originalText;
+      }, 2000);
+    } catch (error) {
+      showError('Failed to copy to clipboard');
+    }
+  });
+</script>

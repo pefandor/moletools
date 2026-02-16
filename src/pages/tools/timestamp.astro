@@ -1,0 +1,275 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FAQ from '../../components/FAQ.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'timestamp')!;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD'
+  },
+  browserRequirements: 'Requires JavaScript',
+  permissions: 'No special permissions required'
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: tool.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer
+    }
+  }))
+};
+---
+
+<Layout title={tool.metaTitle} description={tool.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">⏰ Timestamp Converter</h1>
+      <p class="text-gray-600 dark:text-gray-400">Convert between Unix timestamps and dates</p>
+    </div>
+
+    <div class="space-y-6">
+      <!-- Current Timestamp -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Current Timestamp</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">Unix Timestamp (seconds)</label>
+            <div class="flex items-center space-x-2">
+              <input
+                type="text"
+                id="currentUnix"
+                readonly
+                class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono bg-gray-50 dark:bg-gray-700 dark:text-gray-100"
+              />
+              <button id="copyCurrent" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+                Copy
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">Milliseconds</label>
+            <div class="flex items-center space-x-2">
+              <input
+                type="text"
+                id="currentMs"
+                readonly
+                class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono bg-gray-50 dark:bg-gray-700 dark:text-gray-100"
+              />
+              <button id="copyCurrentMs" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4">
+          <label class="block text-sm text-gray-600 mb-1">Current Date & Time</label>
+          <input
+            type="text"
+            id="currentDate"
+            readonly
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono bg-gray-50 dark:bg-gray-700 dark:text-gray-100"
+          />
+        </div>
+      </div>
+
+      <!-- Timestamp to Date -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Timestamp to Date</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">Unix Timestamp</label>
+            <input
+              type="text"
+              id="timestampInput"
+              placeholder="1609459200"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono focus:ring-2 focus:ring-primary-500"
+            />
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Local Time</label>
+              <input
+                type="text"
+                id="localTime"
+                readonly
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono bg-gray-50 dark:bg-gray-700 dark:text-gray-100"
+              />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">UTC Time</label>
+              <input
+                type="text"
+                id="utcTime"
+                readonly
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono bg-gray-50 dark:bg-gray-700 dark:text-gray-100"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">ISO 8601</label>
+            <input
+              type="text"
+              id="isoTime"
+              readonly
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono bg-gray-50 dark:bg-gray-700 dark:text-gray-100"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Date to Timestamp -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Date to Timestamp</h2>
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Date</label>
+              <input
+                type="date"
+                id="dateInput"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 dark:bg-gray-700 dark:text-gray-100 focus:ring-primary-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Time</label>
+              <input
+                type="time"
+                id="timeInput"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 dark:bg-gray-700 dark:text-gray-100 focus:ring-primary-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">Unix Timestamp</label>
+            <div class="flex items-center space-x-2">
+              <input
+                type="text"
+                id="timestampOutput"
+                readonly
+                class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-mono bg-gray-50 dark:bg-gray-700 dark:text-gray-100"
+              />
+              <button id="copyOutput" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <FAQ items={tool.faq} />
+  </div>
+</Layout>
+
+<script>
+  const currentUnix = document.getElementById('currentUnix');
+  const currentMs = document.getElementById('currentMs');
+  const currentDate = document.getElementById('currentDate');
+  const timestampInput = document.getElementById('timestampInput');
+  const localTime = document.getElementById('localTime');
+  const utcTime = document.getElementById('utcTime');
+  const isoTime = document.getElementById('isoTime');
+  const dateInput = document.getElementById('dateInput');
+  const timeInput = document.getElementById('timeInput');
+  const timestampOutput = document.getElementById('timestampOutput');
+
+  function updateCurrent() {
+    const now = new Date();
+    currentUnix.value = Math.floor(now.getTime() / 1000).toString();
+    currentMs.value = now.getTime().toString();
+    currentDate.value = now.toString();
+  }
+
+  function convertTimestamp() {
+    const value = timestampInput.value.trim();
+    if (!value) {
+      localTime.value = '';
+      utcTime.value = '';
+      isoTime.value = '';
+      return;
+    }
+
+    try {
+      const timestamp = parseInt(value);
+      // Auto-detect if milliseconds (> year 2100 in seconds)
+      const date = timestamp > 4102444800 ? new Date(timestamp) : new Date(timestamp * 1000);
+
+      localTime.value = date.toLocaleString();
+      utcTime.value = date.toUTCString();
+      isoTime.value = date.toISOString();
+    } catch (error) {
+      localTime.value = 'Invalid timestamp';
+      utcTime.value = '';
+      isoTime.value = '';
+    }
+  }
+
+  function convertDate() {
+    if (!dateInput.value) {
+      timestampOutput.value = '';
+      return;
+    }
+
+    const dateStr = dateInput.value + (timeInput.value ? 'T' + timeInput.value : 'T00:00:00');
+    const date = new Date(dateStr);
+    timestampOutput.value = Math.floor(date.getTime() / 1000).toString();
+  }
+
+  // Update current timestamp every second
+  updateCurrent();
+  setInterval(updateCurrent, 1000);
+
+  // Set default date to today
+  const today = new Date();
+  dateInput.value = today.toISOString().split('T')[0];
+  timeInput.value = today.toTimeString().slice(0, 5);
+  convertDate();
+
+  timestampInput?.addEventListener('input', convertTimestamp);
+  dateInput?.addEventListener('input', convertDate);
+  timeInput?.addEventListener('input', convertDate);
+
+  // Copy buttons
+  async function copyToClipboard(text, button) {
+    try {
+      await navigator.clipboard.writeText(text);
+      const originalText = button.textContent;
+      button.textContent = 'Copied!';
+      setTimeout(() => {
+        button.textContent = originalText;
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to copy');
+    }
+  }
+
+  document.getElementById('copyCurrent')?.addEventListener('click', (e) => {
+    copyToClipboard(currentUnix.value, e.target);
+  });
+
+  document.getElementById('copyCurrentMs')?.addEventListener('click', (e) => {
+    copyToClipboard(currentMs.value, e.target);
+  });
+
+  document.getElementById('copyOutput')?.addEventListener('click', (e) => {
+    copyToClipboard(timestampOutput.value, e.target);
+  });
+</script>

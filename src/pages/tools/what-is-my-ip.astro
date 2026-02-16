@@ -1,0 +1,485 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'what-is-my-ip');
+const title = tool?.metaTitle || 'What Is My IP Address';
+const description = tool?.metaDescription || 'Find your IP address and location';
+
+// JSON-LD Schema
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: tool?.name || 'What Is My IP',
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      description: tool?.metaDescription || description,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD'
+      }
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: (tool?.faq || []).map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    }
+  ]
+};
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-5xl mx-auto px-4">
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100">
+          <span data-i18n="pageTitle">{tool?.name || 'What Is My IP'}</span>
+        </h1>
+        <div class="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+          <button id="lang-en" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors">EN</button>
+          <button id="lang-ru" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors">RU</button>
+        </div>
+      </div>
+      <p class="text-lg text-gray-600 dark:text-gray-400" data-i18n="pageDesc">
+        {tool?.description || 'Discover your IP address, location, and browser information'}
+      </p>
+    </div>
+
+    <!-- IP Address Card -->
+    <div class="bg-gradient-to-br from-amber-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-xl shadow-lg p-8 mb-6 border border-gray-100 dark:border-gray-700">
+      <div class="flex items-center justify-between gap-6">
+        <img src="/images/mole/Encoder.png" alt="IP Mole" class="h-16 w-16 object-contain flex-shrink-0" />
+        <div class="flex-1 text-center">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-2" data-i18n="yourIp">Your IP Address</p>
+          <div id="ip-display" class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-3 font-mono">
+            <span class="ip-skeleton">Loading...</span>
+          </div>
+          <div class="flex items-center justify-center gap-3">
+            <span id="ip-version" class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium rounded-full">
+              IPv4
+            </span>
+            <button
+              id="copy-ip-btn"
+              class="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <span data-i18n="copy">📋 Copy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Geo Data Grid -->
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4" data-i18n="locationInfo">Location Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Country -->
+        <div class="geo-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-2xl">🌍</span>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400" data-i18n="country">Country</span>
+          </div>
+          <div id="geo-country" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <div class="skeleton-line w-24 h-6"></div>
+          </div>
+        </div>
+
+        <!-- City -->
+        <div class="geo-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-2xl">🏙️</span>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400" data-i18n="city">City</span>
+          </div>
+          <div id="geo-city" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <div class="skeleton-line w-32 h-6"></div>
+          </div>
+        </div>
+
+        <!-- Region -->
+        <div class="geo-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-2xl">📍</span>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400" data-i18n="region">Region</span>
+          </div>
+          <div id="geo-region" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <div class="skeleton-line w-28 h-6"></div>
+          </div>
+        </div>
+
+        <!-- Postal Code -->
+        <div class="geo-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-2xl">📮</span>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400" data-i18n="postalCode">Postal Code</span>
+          </div>
+          <div id="geo-postal" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <div class="skeleton-line w-20 h-6"></div>
+          </div>
+        </div>
+
+        <!-- Timezone -->
+        <div class="geo-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-2xl">⏰</span>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400" data-i18n="timezone">Timezone</span>
+          </div>
+          <div id="geo-timezone" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <div class="skeleton-line w-36 h-6"></div>
+          </div>
+        </div>
+
+        <!-- ISP -->
+        <div class="geo-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-2xl">🌐</span>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400" data-i18n="isp">ISP</span>
+          </div>
+          <div id="geo-isp" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <div class="skeleton-line w-40 h-6"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Browser Info -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100" data-i18n="browserInfo">Browser Information</h2>
+        <button
+          id="copy-all-btn"
+          class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+        >
+          <span data-i18n="copyAll">📋 Copy All Info</span>
+        </button>
+      </div>
+      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-4 border border-gray-100 dark:border-gray-700">
+        <div>
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-400" data-i18n="userAgent">User Agent:</span>
+          <p id="browser-ua" class="text-sm text-gray-900 dark:text-gray-100 mt-1 break-all font-mono bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-600"></p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400" data-i18n="language">Language:</span>
+            <p id="browser-lang" class="text-sm text-gray-900 dark:text-gray-100 mt-1 font-mono"></p>
+          </div>
+          <div>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400" data-i18n="screenResolution">Screen Resolution:</span>
+            <p id="browser-screen" class="text-sm text-gray-900 dark:text-gray-100 mt-1 font-mono"></p>
+          </div>
+          <div>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-400" data-i18n="platform">Platform:</span>
+            <p id="browser-platform" class="text-sm text-gray-900 dark:text-gray-100 mt-1 font-mono"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    {tool?.faq && tool.faq.length > 0 && (
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mt-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4">
+          {tool.faq.map((item) => (
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.question}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{item.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <script is:inline>
+    (function() {
+      // ===== Translations =====
+      var translations = {
+        en: {
+          pageTitle: 'What Is My IP',
+          pageDesc: 'Discover your IP address, location, and browser information',
+          yourIp: 'Your IP Address',
+          copy: '📋 Copy',
+          copied: 'Copied!',
+          locationInfo: 'Location Information',
+          country: 'Country',
+          city: 'City',
+          region: 'Region',
+          postalCode: 'Postal Code',
+          timezone: 'Timezone',
+          isp: 'ISP',
+          browserInfo: 'Browser Information',
+          userAgent: 'User Agent',
+          language: 'Language',
+          screenResolution: 'Screen Resolution',
+          platform: 'Platform',
+          copyAll: '📋 Copy All Info',
+          loading: 'Loading...',
+          error: 'Error loading data',
+          notAvailable: 'N/A'
+        },
+        ru: {
+          pageTitle: 'Мой IP адрес',
+          pageDesc: 'Узнайте ваш IP адрес, местоположение и информацию о браузере',
+          yourIp: 'Ваш IP адрес',
+          copy: '📋 Копировать',
+          copied: 'Скопировано!',
+          locationInfo: 'Информация о местоположении',
+          country: 'Страна',
+          city: 'Город',
+          region: 'Регион',
+          postalCode: 'Индекс',
+          timezone: 'Часовой пояс',
+          isp: 'Провайдер',
+          browserInfo: 'Информация о браузере',
+          userAgent: 'User Agent',
+          language: 'Язык',
+          screenResolution: 'Разрешение экрана',
+          platform: 'Платформа',
+          copyAll: '📋 Копировать всё',
+          loading: 'Загрузка...',
+          error: 'Ошибка загрузки',
+          notAvailable: 'Н/Д'
+        }
+      };
+
+      var currentLang = localStorage.getItem('lang') || 'en';
+
+      function t(key) {
+        return translations[currentLang][key] || translations.en[key] || key;
+      }
+
+      function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('lang', lang);
+
+        // Update all [data-i18n] elements
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+          var key = el.getAttribute('data-i18n');
+          el.textContent = t(key);
+        });
+
+        // Update button styles
+        var langEnBtn = document.getElementById('lang-en');
+        var langRuBtn = document.getElementById('lang-ru');
+
+        if (lang === 'en') {
+          langEnBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-amber-500 text-white';
+          langRuBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-transparent text-gray-600 dark:text-gray-400';
+        } else {
+          langRuBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-amber-500 text-white';
+          langEnBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-transparent text-gray-600 dark:text-gray-400';
+        }
+      }
+
+      // DOM refs
+      var ipDisplay = document.getElementById('ip-display');
+      var ipVersion = document.getElementById('ip-version');
+      var copyIpBtn = document.getElementById('copy-ip-btn');
+      var copyAllBtn = document.getElementById('copy-all-btn');
+
+      var geoCountry = document.getElementById('geo-country');
+      var geoCity = document.getElementById('geo-city');
+      var geoRegion = document.getElementById('geo-region');
+      var geoPostal = document.getElementById('geo-postal');
+      var geoTimezone = document.getElementById('geo-timezone');
+      var geoIsp = document.getElementById('geo-isp');
+
+      var browserUa = document.getElementById('browser-ua');
+      var browserLang = document.getElementById('browser-lang');
+      var browserScreen = document.getElementById('browser-screen');
+      var browserPlatform = document.getElementById('browser-platform');
+
+      // State
+      var currentIp = '';
+      var geoData = {};
+
+      // ===== Browser Info =====
+      function loadBrowserInfo() {
+        browserUa.textContent = navigator.userAgent;
+        browserLang.textContent = navigator.language || t('notAvailable');
+        browserScreen.textContent = screen.width + ' × ' + screen.height;
+        browserPlatform.textContent = navigator.platform || t('notAvailable');
+      }
+
+      // ===== IP Detection =====
+      async function fetchIpAddress() {
+        try {
+          var response = await fetch('https://api.ipify.org?format=json');
+          var data = await response.json();
+          currentIp = data.ip;
+
+          // Update IP display with fade-in
+          ipDisplay.innerHTML = '<span class="fade-in">' + currentIp + '</span>';
+
+          // Detect IPv4 vs IPv6
+          var isIpv6 = currentIp.includes(':');
+          ipVersion.textContent = isIpv6 ? 'IPv6' : 'IPv4';
+
+          // Fetch geo data
+          fetchGeoData(currentIp);
+        } catch (error) {
+          ipDisplay.innerHTML = '<span class="text-red-500">' + t('error') + '</span>';
+          console.error('IP fetch error:', error);
+        }
+      }
+
+      // ===== Geo Data =====
+      async function fetchGeoData(ip) {
+        try {
+          var response = await fetch('http://ip-api.com/json/' + ip);
+          var data = await response.json();
+
+          if (data.status === 'success') {
+            geoData = data;
+
+            // Update each field with fade-in
+            geoCountry.innerHTML = '<span class="fade-in">' + (data.country || t('notAvailable')) + '</span>';
+            geoCity.innerHTML = '<span class="fade-in">' + (data.city || t('notAvailable')) + '</span>';
+            geoRegion.innerHTML = '<span class="fade-in">' + (data.regionName || t('notAvailable')) + '</span>';
+            geoPostal.innerHTML = '<span class="fade-in">' + (data.zip || t('notAvailable')) + '</span>';
+            geoTimezone.innerHTML = '<span class="fade-in">' + (data.timezone || t('notAvailable')) + '</span>';
+            geoIsp.innerHTML = '<span class="fade-in">' + (data.isp || t('notAvailable')) + '</span>';
+          } else {
+            throw new Error('Geo API failed');
+          }
+        } catch (error) {
+          geoCountry.innerHTML = '<span class="text-red-500 text-sm">' + t('error') + '</span>';
+          geoCity.innerHTML = '<span class="text-red-500 text-sm">' + t('error') + '</span>';
+          geoRegion.innerHTML = '<span class="text-red-500 text-sm">' + t('error') + '</span>';
+          geoPostal.innerHTML = '<span class="text-red-500 text-sm">' + t('error') + '</span>';
+          geoTimezone.innerHTML = '<span class="text-red-500 text-sm">' + t('error') + '</span>';
+          geoIsp.innerHTML = '<span class="text-red-500 text-sm">' + t('error') + '</span>';
+          console.error('Geo fetch error:', error);
+        }
+      }
+
+      // ===== Copy Functions =====
+      function copyIp() {
+        if (currentIp) {
+          navigator.clipboard.writeText(currentIp);
+          var copySpan = copyIpBtn.querySelector('[data-i18n="copy"]');
+          if (copySpan) copySpan.textContent = '✓ ' + t('copied');
+          setTimeout(function() {
+            if (copySpan) copySpan.textContent = t('copy');
+          }, 2000);
+        }
+      }
+
+      function copyAll() {
+        var text = t('yourIp') + ': ' + currentIp + '\n\n';
+        text += t('locationInfo') + ':\n';
+        text += t('country') + ': ' + (geoData.country || t('notAvailable')) + '\n';
+        text += t('city') + ': ' + (geoData.city || t('notAvailable')) + '\n';
+        text += t('region') + ': ' + (geoData.regionName || t('notAvailable')) + '\n';
+        text += t('postalCode') + ': ' + (geoData.zip || t('notAvailable')) + '\n';
+        text += t('timezone') + ': ' + (geoData.timezone || t('notAvailable')) + '\n';
+        text += t('isp') + ': ' + (geoData.isp || t('notAvailable')) + '\n\n';
+        text += t('browserInfo') + ':\n';
+        text += t('userAgent') + ': ' + navigator.userAgent + '\n';
+        text += t('language') + ': ' + navigator.language + '\n';
+        text += t('screenResolution') + ': ' + screen.width + ' × ' + screen.height + '\n';
+        text += t('platform') + ': ' + navigator.platform;
+
+        navigator.clipboard.writeText(text);
+        var copySpan = copyAllBtn.querySelector('[data-i18n="copyAll"]');
+        if (copySpan) copySpan.textContent = '✓ ' + t('copied');
+        setTimeout(function() {
+          if (copySpan) copySpan.textContent = t('copyAll');
+        }, 2000);
+      }
+
+      // ===== Event Listeners =====
+      if (copyIpBtn) copyIpBtn.addEventListener('click', copyIp);
+      if (copyAllBtn) copyAllBtn.addEventListener('click', copyAll);
+
+      // Language switcher
+      var langEnBtn = document.getElementById('lang-en');
+      var langRuBtn = document.getElementById('lang-ru');
+
+      if (langEnBtn) {
+        langEnBtn.addEventListener('click', function() {
+          setLanguage('en');
+        });
+      }
+
+      if (langRuBtn) {
+        langRuBtn.addEventListener('click', function() {
+          setLanguage('ru');
+        });
+      }
+
+      // Initialize
+      setLanguage(currentLang);
+      loadBrowserInfo();
+      fetchIpAddress();
+    })();
+  </script>
+
+  <style>
+    /* Skeleton loader */
+    .skeleton-line {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: skeletonPulse 1.5s infinite;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    :global(.dark) .skeleton-line {
+      background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+      background-size: 200% 100%;
+    }
+    @keyframes skeletonPulse {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .ip-skeleton {
+      display: inline-block;
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: skeletonPulse 1.5s infinite;
+      border-radius: 4px;
+      color: transparent;
+      user-select: none;
+    }
+    :global(.dark) .ip-skeleton {
+      background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+      background-size: 200% 100%;
+    }
+
+    /* Fade in animation */
+    .fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Geo card hover effect */
+    .geo-card {
+      transition: all 0.2s ease;
+    }
+    .geo-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</Layout>

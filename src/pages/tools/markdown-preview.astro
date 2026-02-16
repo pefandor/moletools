@@ -1,0 +1,294 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'markdown-preview');
+const title = tool?.metaTitle || 'Markdown Preview';
+const description = tool?.metaDescription || 'Live Markdown to HTML preview';
+
+// JSON-LD Schema
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: tool?.name || 'Markdown Preview',
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      description: tool?.metaDescription || description,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD'
+      }
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: (tool?.faq || []).map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    }
+  ]
+};
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        {tool?.icon} {tool?.name || 'Markdown Preview'}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        {tool?.description || 'Live Markdown to HTML preview'}
+      </p>
+    </div>
+
+    <!-- Copy HTML Button -->
+    <div class="mb-4">
+      <button
+        id="copy-html-btn"
+        class="px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+      >
+        📋 Copy HTML
+      </button>
+    </div>
+
+    <!-- Editor and Preview -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <!-- Markdown Input -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Markdown Input</h2>
+        <textarea
+          id="markdown-input"
+          rows="20"
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-y font-mono text-sm"
+          placeholder="# Enter Markdown here...&#10;&#10;## Heading 2&#10;&#10;**Bold text** and *italic text*&#10;&#10;- List item 1&#10;- List item 2&#10;&#10;[Link](https://example.com)&#10;&#10;`inline code`&#10;&#10;---"
+        ></textarea>
+      </div>
+
+      <!-- HTML Preview -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">HTML Preview</h2>
+        <div
+          id="preview"
+          class="prose prose-sm max-w-none p-4 border border-gray-300 dark:border-gray-600 rounded-lg min-h-[500px] bg-gray-50 dark:bg-gray-700 dark:text-gray-100"
+        >
+          <p class="text-gray-400">Preview will appear here...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    {tool?.faq && tool.faq.length > 0 && (
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4">
+          {tool.faq.map((item) => (
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.question}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{item.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <script>
+    (function() {
+      var markdownInput = document.getElementById('markdown-input');
+      var preview = document.getElementById('preview');
+      var copyHtmlBtn = document.getElementById('copy-html-btn');
+
+      function escapeHtml(text) {
+        var map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+      }
+
+      function parseMarkdown(markdown) {
+        var html = markdown;
+
+        // Escape HTML first
+        html = escapeHtml(html);
+
+        // Horizontal rule (---)
+        html = html.replace(/^---$/gm, '<hr>');
+
+        // Headers (# ## ### etc)
+        html = html.replace(/^######\s+(.+)$/gm, '<h6>$1</h6>');
+        html = html.replace(/^#####\s+(.+)$/gm, '<h5>$1</h5>');
+        html = html.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+        html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+        html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+        html = html.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+
+        // Bold (**text**)
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+        // Italic (*text*)
+        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+        // Inline code (`code`)
+        html = html.replace(/`(.+?)`/g, '<code>$1</code>');
+
+        // Links ([text](url))
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+        // Unordered lists (- item)
+        var lines = html.split('\n');
+        var inList = false;
+        var result = [];
+
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
+          var listMatch = line.match(/^[-*]\s+(.+)$/);
+
+          if (listMatch) {
+            if (!inList) {
+              result.push('<ul>');
+              inList = true;
+            }
+            result.push('<li>' + listMatch[1] + '</li>');
+          } else {
+            if (inList) {
+              result.push('</ul>');
+              inList = false;
+            }
+            result.push(line);
+          }
+        }
+
+        if (inList) {
+          result.push('</ul>');
+        }
+
+        html = result.join('\n');
+
+        // Ordered lists (1. item)
+        lines = html.split('\n');
+        inList = false;
+        result = [];
+
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
+          var listMatch = line.match(/^\d+\.\s+(.+)$/);
+
+          if (listMatch) {
+            if (!inList) {
+              result.push('<ol>');
+              inList = true;
+            }
+            result.push('<li>' + listMatch[1] + '</li>');
+          } else {
+            if (inList) {
+              result.push('</ol>');
+              inList = false;
+            }
+            result.push(line);
+          }
+        }
+
+        if (inList) {
+          result.push('</ol>');
+        }
+
+        html = result.join('\n');
+
+        // Paragraphs (wrap non-tag lines)
+        lines = html.split('\n');
+        result = [];
+        var inParagraph = false;
+
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+
+          if (line === '') {
+            if (inParagraph) {
+              result.push('</p>');
+              inParagraph = false;
+            }
+            continue;
+          }
+
+          // Check if line is already a tag
+          if (line.match(/^<(h[1-6]|hr|ul|ol|li|\/ul|\/ol)>/)) {
+            if (inParagraph) {
+              result.push('</p>');
+              inParagraph = false;
+            }
+            result.push(line);
+          } else {
+            if (!inParagraph) {
+              result.push('<p>');
+              inParagraph = true;
+            }
+            result.push(line);
+          }
+        }
+
+        if (inParagraph) {
+          result.push('</p>');
+        }
+
+        html = result.join('\n');
+
+        return html;
+      }
+
+      function updatePreview() {
+        var markdown = markdownInput.value;
+        var html = parseMarkdown(markdown);
+        preview.innerHTML = html;
+      }
+
+      if (markdownInput) {
+        markdownInput.addEventListener('input', updatePreview);
+
+        // Set initial example
+        markdownInput.value = '# Welcome to Markdown Preview\n\n## Features\n\nThis tool supports:\n\n- **Bold text**\n- *Italic text*\n- `Inline code`\n- [Links](https://example.com)\n- Lists\n\n---\n\n### Try it yourself!\n\nStart typing in the left panel to see live preview.';
+        updatePreview();
+      }
+
+      if (copyHtmlBtn) {
+        copyHtmlBtn.addEventListener('click', function() {
+          var html = preview.innerHTML;
+          navigator.clipboard.writeText(html);
+          copyHtmlBtn.textContent = '✓ Copied';
+          setTimeout(function() { copyHtmlBtn.textContent = '📋 Copy HTML'; }, 2000);
+        });
+      }
+    })();
+  </script>
+
+  <style>
+    /* Markdown preview styles */
+    #preview h1 { font-size: 2em; font-weight: bold; margin: 0.67em 0; }
+    #preview h2 { font-size: 1.5em; font-weight: bold; margin: 0.75em 0; }
+    #preview h3 { font-size: 1.17em; font-weight: bold; margin: 0.83em 0; }
+    #preview h4 { font-size: 1em; font-weight: bold; margin: 1em 0; }
+    #preview h5 { font-size: 0.83em; font-weight: bold; margin: 1.17em 0; }
+    #preview h6 { font-size: 0.67em; font-weight: bold; margin: 1.33em 0; }
+    #preview p { margin: 1em 0; }
+    #preview ul, #preview ol { margin: 1em 0; padding-left: 2em; }
+    #preview li { margin: 0.5em 0; }
+    #preview code { background: #f3f4f6; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 0.9em; }
+    #preview a { color: #4F46E5; text-decoration: underline; }
+    #preview a:hover { color: #4338CA; }
+    #preview hr { border: 0; border-top: 2px solid #e5e7eb; margin: 2em 0; }
+    #preview strong { font-weight: bold; }
+    #preview em { font-style: italic; }
+  </style>
+</Layout>

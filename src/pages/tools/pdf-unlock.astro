@@ -1,0 +1,421 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FAQ from '../../components/FAQ.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'pdf-unlock')!;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  browserRequirements: 'Requires JavaScript',
+  permissions: 'No special permissions required'
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: tool.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer }
+  }))
+};
+---
+
+<Layout title={tool.metaTitle} description={tool.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <img src="/images/mole/Converter.png" alt="Mole's Tools" class="inline h-14 w-14 mr-2 object-contain" style="vertical-align: -10px;" />
+        <span data-i18n="upTitle">Unlock PDF</span>
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400" data-i18n="upDesc">Remove password protection from an encrypted PDF</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+
+      <!-- Drop Zone -->
+      <div
+        id="dropZone"
+        class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center cursor-pointer hover:border-amber-400 dark:hover:border-amber-500 transition-colors"
+      >
+        <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 1v4m-2-2h4" />
+        </svg>
+        <p class="text-gray-600 dark:text-gray-400 font-medium" data-i18n="upUpload">Drag & drop a protected PDF file here or click to browse</p>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">PDF — max 50MB</p>
+        <input type="file" id="fileInput" accept="application/pdf" class="hidden" />
+      </div>
+
+      <!-- Settings Section -->
+      <div id="settingsSection" class="hidden space-y-5">
+        <!-- File info card -->
+        <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-medium text-gray-900 dark:text-gray-100 truncate" id="fileName">—</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400" id="fileInfo">—</p>
+          </div>
+          <button id="changeFileBtn" class="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 font-medium whitespace-nowrap">
+            <span data-i18n="upChange">Change</span>
+          </button>
+        </div>
+
+        <!-- Password input -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" data-i18n="upPassword">Password</label>
+          <input
+            type="password"
+            id="passwordInput"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+            placeholder=""
+          />
+        </div>
+
+        <!-- Unlock button -->
+        <button id="unlockBtn" class="w-full px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          <span data-i18n="upUnlockBtn">Unlock PDF</span>
+        </button>
+      </div>
+
+      <!-- Progress Section -->
+      <div id="progressSection" class="hidden">
+        <div class="space-y-3 py-2">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600 dark:text-gray-400" data-i18n="upUnlocking">Unlocking...</span>
+            <span class="text-gray-500 dark:text-gray-400" id="progressText"></span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+            <div id="progressBar" class="bg-amber-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Section -->
+      <div id="resultSection" class="hidden">
+        <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <svg class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="font-medium text-green-800 dark:text-green-200" data-i18n="upSuccess">PDF unlocked successfully!</p>
+            </div>
+            <button id="downloadBtn" class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span data-i18n="upDownload">Download</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Section -->
+      <div id="errorSection" class="hidden">
+        <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div class="flex items-center gap-3">
+            <svg class="w-6 h-6 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-800 dark:text-red-200" id="errorMessage"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <FAQ items={tool.faq} />
+  </div>
+</Layout>
+
+<script is:inline>
+(function() {
+  // ==========================================
+  // API URL
+  // ==========================================
+  var API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:8000'
+    : 'https://api.moletools.dev';
+
+  // ==========================================
+  // State
+  // ==========================================
+  var currentFile = null;
+  var resultBlob = null;
+
+  // ==========================================
+  // DOM Elements
+  // ==========================================
+  var dropZone = document.getElementById('dropZone');
+  var fileInput = document.getElementById('fileInput');
+  var settingsSection = document.getElementById('settingsSection');
+  var fileName = document.getElementById('fileName');
+  var fileInfo = document.getElementById('fileInfo');
+  var changeFileBtn = document.getElementById('changeFileBtn');
+  var passwordInput = document.getElementById('passwordInput');
+  var unlockBtn = document.getElementById('unlockBtn');
+  var progressSection = document.getElementById('progressSection');
+  var progressBar = document.getElementById('progressBar');
+  var progressText = document.getElementById('progressText');
+  var resultSection = document.getElementById('resultSection');
+  var downloadBtn = document.getElementById('downloadBtn');
+  var errorSection = document.getElementById('errorSection');
+  var errorMessage = document.getElementById('errorMessage');
+
+  // ==========================================
+  // Utilities
+  // ==========================================
+  function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    var k = 1024;
+    var sizes = ['B', 'KB', 'MB', 'GB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function showError(msg) {
+    errorSection.classList.remove('hidden');
+    errorMessage.textContent = msg;
+  }
+
+  function hideError() {
+    errorSection.classList.add('hidden');
+  }
+
+  function t(key) {
+    if (typeof MoleI18n !== 'undefined') return MoleI18n.t(key);
+    return key;
+  }
+
+  // ==========================================
+  // Drop Zone
+  // ==========================================
+  if (dropZone) {
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropZone.classList.add('border-amber-400', 'dark:border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/10');
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('border-amber-400', 'dark:border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/10');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('border-amber-400', 'dark:border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/10');
+      var files = e.dataTransfer.files;
+      if (files.length > 0 && files[0].type === 'application/pdf') {
+        handleFile(files[0]);
+      }
+    });
+  }
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function() {
+      if (fileInput.files.length > 0) {
+        handleFile(fileInput.files[0]);
+        fileInput.value = '';
+      }
+    });
+  }
+
+  if (changeFileBtn) {
+    changeFileBtn.addEventListener('click', function() { fileInput.click(); });
+  }
+
+  // ==========================================
+  // Handle File
+  // ==========================================
+  function handleFile(file) {
+    if (file.size > 50 * 1024 * 1024) {
+      showError('PDF file is too large. Maximum size is 50MB.');
+      return;
+    }
+
+    currentFile = file;
+    resultBlob = null;
+
+    // Hide results & errors
+    resultSection.classList.add('hidden');
+    errorSection.classList.add('hidden');
+    progressSection.classList.add('hidden');
+
+    // Show settings
+    settingsSection.classList.remove('hidden');
+    settingsSection.style.animation = 'fadeIn 0.3s ease';
+
+    // File info
+    fileName.textContent = escapeHtml(file.name);
+    fileInfo.textContent = formatBytes(file.size);
+
+    // Clear password
+    passwordInput.value = '';
+    passwordInput.focus();
+  }
+
+  // ==========================================
+  // Unlock
+  // ==========================================
+  if (unlockBtn) {
+    unlockBtn.addEventListener('click', function() {
+      if (!currentFile) return;
+
+      var password = passwordInput.value;
+      if (!password) {
+        showError(t('upPasswordRequired'));
+        return;
+      }
+
+      hideError();
+      resultSection.classList.add('hidden');
+      progressSection.classList.remove('hidden');
+      unlockBtn.disabled = true;
+      unlockBtn.querySelector('span').textContent = t('upUnlocking');
+
+      // Fake progress animation
+      progressBar.style.width = '0%';
+      var fakeProgress = 0;
+      var progressInterval = setInterval(function() {
+        if (fakeProgress < 85) {
+          fakeProgress += Math.random() * 8;
+          if (fakeProgress > 85) fakeProgress = 85;
+          progressBar.style.width = fakeProgress + '%';
+          progressText.textContent = Math.round(fakeProgress) + '%';
+        }
+      }, 300);
+
+      var formData = new FormData();
+      formData.append('file', currentFile);
+      formData.append('password', password);
+
+      fetch(API_URL + '/pdf/unlock', {
+        method: 'POST',
+        body: formData
+      })
+      .then(function(response) {
+        if (!response.ok) {
+          return response.json().then(function(data) {
+            var err = new Error(data.detail || 'Unlock failed');
+            err.status = response.status;
+            throw err;
+          });
+        }
+        return response.blob();
+      })
+      .then(function(blob) {
+        clearInterval(progressInterval);
+        progressBar.style.width = '100%';
+        progressText.textContent = '100%';
+        resultBlob = blob;
+
+        setTimeout(function() {
+          progressSection.classList.add('hidden');
+          unlockBtn.disabled = false;
+          unlockBtn.querySelector('span').textContent = t('upUnlockBtn');
+
+          resultSection.classList.remove('hidden');
+          resultSection.style.animation = 'fadeIn 0.3s ease';
+        }, 400);
+      })
+      .catch(function(err) {
+        clearInterval(progressInterval);
+        progressSection.classList.add('hidden');
+        unlockBtn.disabled = false;
+        unlockBtn.querySelector('span').textContent = t('upUnlockBtn');
+
+        if (err.status === 400 && err.message && err.message.toLowerCase().indexOf('password') !== -1) {
+          showError(t('upWrongPassword'));
+        } else {
+          showError(err.message || 'Unlock failed. Please try again.');
+        }
+      });
+    });
+  }
+
+  // ==========================================
+  // Download
+  // ==========================================
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', function() {
+      if (!resultBlob) return;
+      var url = URL.createObjectURL(resultBlob);
+      var a = document.createElement('a');
+      a.href = url;
+      var baseName = currentFile ? currentFile.name.replace(/\.pdf$/i, '') : 'document';
+      a.download = baseName + '_unlocked.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // ==========================================
+  // i18n
+  // ==========================================
+  if (typeof MoleI18n !== 'undefined') {
+    MoleI18n.addTranslations('en', {
+      upTitle: 'Unlock PDF',
+      upDesc: 'Remove password protection from an encrypted PDF',
+      upUpload: 'Drag & drop a protected PDF file here or click to browse',
+      upChange: 'Change',
+      upPassword: 'Password',
+      upUnlockBtn: 'Unlock PDF',
+      upUnlocking: 'Unlocking...',
+      upSuccess: 'PDF unlocked successfully!',
+      upDownload: 'Download',
+      upWrongPassword: 'Wrong password. Please try again.',
+      upPasswordRequired: 'Password is required'
+    });
+
+    MoleI18n.addTranslations('ru', {
+      upTitle: 'Снять пароль с PDF',
+      upDesc: 'Снятие пароля с защищённого PDF документа',
+      upUpload: 'Перетащите защищённый PDF файл сюда или нажмите для выбора',
+      upChange: 'Сменить',
+      upPassword: 'Пароль',
+      upUnlockBtn: 'Снять пароль',
+      upUnlocking: 'Разблокировка...',
+      upSuccess: 'PDF успешно разблокирован!',
+      upDownload: 'Скачать',
+      upWrongPassword: 'Неверный пароль. Попробуйте ещё раз.',
+      upPasswordRequired: 'Необходимо ввести пароль'
+    });
+
+    var currentLang = MoleI18n.getCurrentLang();
+    MoleI18n.setLanguage(currentLang);
+  }
+})();
+</script>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

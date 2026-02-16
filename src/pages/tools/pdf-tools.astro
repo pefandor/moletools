@@ -1,0 +1,187 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FAQ from '../../components/FAQ.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'pdf-tools')!;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD'
+  },
+  browserRequirements: 'Requires JavaScript',
+  permissions: 'No special permissions required'
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: tool.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer
+    }
+  }))
+};
+---
+
+<Layout title={tool.metaTitle} description={tool.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <img src="/images/mole/Converter.png" alt="Mole's Tools" class="inline h-14 w-14 mr-2 object-contain" style="vertical-align: -10px;" />
+        <span>PDF Tools</span>
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400" data-i18n="pdfHubDesc">All-in-one PDF toolkit. Split, merge, rotate, protect, and more.</p>
+    </div>
+
+    <!-- Tool Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+      <!-- Split PDF -->
+      <a href="/tools/pdf-split" class="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:-translate-y-1 hover:shadow-lg hover:border-amber-400 dark:hover:border-amber-500 transition-all" style="animation: fadeIn 0.3s ease both; animation-delay: 0.0s;">
+        <div class="text-2xl mb-2">&#x2702;&#xFE0F;</div>
+        <div class="font-medium text-gray-900 dark:text-gray-100" data-i18n="pdfHubSplit">Split PDF</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400" data-i18n="pdfHubSplitDesc">Split PDF into individual pages or extract ranges</div>
+      </a>
+
+      <!-- Merge PDF -->
+      <a href="/tools/pdf-merge" class="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:-translate-y-1 hover:shadow-lg hover:border-amber-400 dark:hover:border-amber-500 transition-all" style="animation: fadeIn 0.3s ease both; animation-delay: 0.05s;">
+        <div class="text-2xl mb-2">&#x1F4C4;</div>
+        <div class="font-medium text-gray-900 dark:text-gray-100" data-i18n="pdfHubMerge">Merge PDF</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400" data-i18n="pdfHubMergeDesc">Combine multiple PDFs into one document</div>
+      </a>
+
+      <!-- Rotate PDF -->
+      <a href="/tools/pdf-rotate" class="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:-translate-y-1 hover:shadow-lg hover:border-amber-400 dark:hover:border-amber-500 transition-all" style="animation: fadeIn 0.3s ease both; animation-delay: 0.1s;">
+        <div class="text-2xl mb-2">&#x1F504;</div>
+        <div class="font-medium text-gray-900 dark:text-gray-100" data-i18n="pdfHubRotate">Rotate PDF</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400" data-i18n="pdfHubRotateDesc">Rotate PDF pages by 90°, 180°, or 270°</div>
+      </a>
+
+      <!-- Delete Pages -->
+      <a href="/tools/pdf-delete-pages" class="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:-translate-y-1 hover:shadow-lg hover:border-amber-400 dark:hover:border-amber-500 transition-all" style="animation: fadeIn 0.3s ease both; animation-delay: 0.15s;">
+        <div class="text-2xl mb-2">&#x1F5D1;&#xFE0F;</div>
+        <div class="font-medium text-gray-900 dark:text-gray-100" data-i18n="pdfHubDelete">Delete Pages</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400" data-i18n="pdfHubDeleteDesc">Remove specific pages from a PDF</div>
+      </a>
+
+      <!-- Reorder Pages -->
+      <a href="/tools/pdf-reorder" class="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:-translate-y-1 hover:shadow-lg hover:border-amber-400 dark:hover:border-amber-500 transition-all" style="animation: fadeIn 0.3s ease both; animation-delay: 0.2s;">
+        <div class="text-2xl mb-2">&#x1F4CB;</div>
+        <div class="font-medium text-gray-900 dark:text-gray-100" data-i18n="pdfHubReorder">Reorder Pages</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400" data-i18n="pdfHubReorderDesc">Rearrange PDF pages in any order</div>
+      </a>
+
+      <!-- Protect PDF -->
+      <a href="/tools/pdf-protect" class="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:-translate-y-1 hover:shadow-lg hover:border-amber-400 dark:hover:border-amber-500 transition-all" style="animation: fadeIn 0.3s ease both; animation-delay: 0.25s;">
+        <div class="text-2xl mb-2">&#x1F512;</div>
+        <div class="font-medium text-gray-900 dark:text-gray-100" data-i18n="pdfHubProtect">Protect PDF</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400" data-i18n="pdfHubProtectDesc">Encrypt PDF with a password</div>
+      </a>
+
+      <!-- Unlock PDF -->
+      <a href="/tools/pdf-unlock" class="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:-translate-y-1 hover:shadow-lg hover:border-amber-400 dark:hover:border-amber-500 transition-all" style="animation: fadeIn 0.3s ease both; animation-delay: 0.3s;">
+        <div class="text-2xl mb-2">&#x1F513;</div>
+        <div class="font-medium text-gray-900 dark:text-gray-100" data-i18n="pdfHubUnlock">Unlock PDF</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400" data-i18n="pdfHubUnlockDesc">Remove password from a protected PDF</div>
+      </a>
+
+      <!-- PDF to JPG -->
+      <a href="/tools/pdf-to-jpg" class="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:-translate-y-1 hover:shadow-lg hover:border-amber-400 dark:hover:border-amber-500 transition-all" style="animation: fadeIn 0.3s ease both; animation-delay: 0.35s;">
+        <div class="text-2xl mb-2">&#x1F5BC;&#xFE0F;</div>
+        <div class="font-medium text-gray-900 dark:text-gray-100" data-i18n="pdfHubPdfToJpg">PDF to JPG</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400" data-i18n="pdfHubPdfToJpgDesc">Convert PDF pages to JPG images</div>
+      </a>
+
+      <!-- Images to PDF -->
+      <a href="/tools/images-to-pdf" class="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:-translate-y-1 hover:shadow-lg hover:border-amber-400 dark:hover:border-amber-500 transition-all" style="animation: fadeIn 0.3s ease both; animation-delay: 0.4s;">
+        <div class="text-2xl mb-2">&#x1F4D1;</div>
+        <div class="font-medium text-gray-900 dark:text-gray-100" data-i18n="pdfHubImgToPdf">Images to PDF</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400" data-i18n="pdfHubImgToPdfDesc">Combine images into a PDF document</div>
+      </a>
+
+    </div>
+
+    <!-- FAQ Section -->
+    <FAQ items={tool.faq} />
+  </div>
+</Layout>
+
+<script is:inline>
+(function() {
+  if (typeof MoleI18n !== 'undefined') {
+    MoleI18n.addTranslations('en', {
+      pdfHubDesc: 'All-in-one PDF toolkit. Split, merge, rotate, protect, and more.',
+      pdfHubSplit: 'Split PDF',
+      pdfHubSplitDesc: 'Split PDF into individual pages or extract ranges',
+      pdfHubMerge: 'Merge PDF',
+      pdfHubMergeDesc: 'Combine multiple PDFs into one document',
+      pdfHubRotate: 'Rotate PDF',
+      pdfHubRotateDesc: 'Rotate PDF pages by 90°, 180°, or 270°',
+      pdfHubDelete: 'Delete Pages',
+      pdfHubDeleteDesc: 'Remove specific pages from a PDF',
+      pdfHubReorder: 'Reorder Pages',
+      pdfHubReorderDesc: 'Rearrange PDF pages in any order',
+      pdfHubProtect: 'Protect PDF',
+      pdfHubProtectDesc: 'Encrypt PDF with a password',
+      pdfHubUnlock: 'Unlock PDF',
+      pdfHubUnlockDesc: 'Remove password from a protected PDF',
+      pdfHubPdfToJpg: 'PDF to JPG',
+      pdfHubPdfToJpgDesc: 'Convert PDF pages to JPG images',
+      pdfHubImgToPdf: 'Images to PDF',
+      pdfHubImgToPdfDesc: 'Combine images into a PDF document'
+    });
+
+    MoleI18n.addTranslations('ru', {
+      pdfHubDesc: 'Полный набор инструментов для работы с PDF. Разделение, объединение, поворот, защита и многое другое.',
+      pdfHubSplit: 'Разделить PDF',
+      pdfHubSplitDesc: 'Разделить PDF на отдельные страницы или извлечь диапазон',
+      pdfHubMerge: 'Объединить PDF',
+      pdfHubMergeDesc: 'Объединить несколько PDF в один документ',
+      pdfHubRotate: 'Повернуть PDF',
+      pdfHubRotateDesc: 'Повернуть страницы PDF на 90°, 180° или 270°',
+      pdfHubDelete: 'Удалить страницы',
+      pdfHubDeleteDesc: 'Удалить определённые страницы из PDF',
+      pdfHubReorder: 'Переставить страницы',
+      pdfHubReorderDesc: 'Изменить порядок страниц в PDF',
+      pdfHubProtect: 'Защитить PDF',
+      pdfHubProtectDesc: 'Зашифровать PDF паролем',
+      pdfHubUnlock: 'Снять пароль',
+      pdfHubUnlockDesc: 'Снять пароль с защищённого PDF',
+      pdfHubPdfToJpg: 'PDF в JPG',
+      pdfHubPdfToJpgDesc: 'Конвертировать страницы PDF в JPG изображения',
+      pdfHubImgToPdf: 'Картинки в PDF',
+      pdfHubImgToPdfDesc: 'Объединить изображения в PDF документ'
+    });
+
+    document.addEventListener('languagechange', function() {
+      MoleI18n.setLanguage(MoleI18n.getCurrentLang());
+    });
+
+    var currentLang = MoleI18n.getCurrentLang();
+    MoleI18n.setLanguage(currentLang);
+  }
+})();
+</script>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

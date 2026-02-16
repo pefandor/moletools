@@ -1,0 +1,533 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FAQ from '../../components/FAQ.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'images-to-pdf')!;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD'
+  },
+  browserRequirements: 'Requires JavaScript',
+  permissions: 'No special permissions required'
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: tool.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer
+    }
+  }))
+};
+---
+
+<Layout title={tool.metaTitle} description={tool.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <img src="/images/mole/Converter.png" alt="Mole's Tools" class="inline h-14 w-14 mr-2 object-contain" style="vertical-align: -10px;" />
+        <span>Images to PDF</span>
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400" data-i18n="i2pDesc">Combine multiple images into a single PDF document</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+
+      <!-- Drop Zone -->
+      <div
+        id="dropZone"
+        class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center cursor-pointer hover:border-amber-400 dark:hover:border-amber-500 transition-colors"
+      >
+        <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p class="text-gray-600 dark:text-gray-400 font-medium" data-i18n="i2pUploadImages">Drag & drop images here or click to browse</p>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">PNG, JPG, WebP, BMP, TIFF, GIF — max 10MB each</p>
+        <input type="file" id="fileInput" accept="image/*" multiple class="hidden" />
+      </div>
+
+      <!-- Image List -->
+      <div id="imageListSection" class="hidden space-y-4">
+        <!-- Counter & Add More -->
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-gray-600 dark:text-gray-400" id="pageCounter"></p>
+          <button id="addMoreBtn" class="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-500 font-medium flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span data-i18n="i2pAddMore">Add more</span>
+          </button>
+        </div>
+
+        <!-- Hint -->
+        <p class="text-xs text-gray-400 dark:text-gray-500 italic" data-i18n="i2pDragToReorder">Drag cards to reorder pages</p>
+
+        <!-- Sortable List -->
+        <div id="imageList" class="space-y-2">
+          <!-- Cards inserted here -->
+        </div>
+
+        <!-- Options -->
+        <div class="flex flex-wrap items-end gap-4">
+          <div class="flex-1 min-w-[180px]">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" data-i18n="i2pPageSize">Page Size</label>
+            <select id="pageSize" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100">
+              <option value="a4">A4 (210 × 297 mm)</option>
+              <option value="letter">Letter (8.5 × 11 in)</option>
+              <option value="original" data-i18n="i2pOriginalSize">Original Size</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button id="createPdfBtn" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span data-i18n="i2pCreatePdf">Create PDF</span>
+          </button>
+          <button id="clearAllBtn" class="px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors">
+            <span data-i18n="i2pClearAll">Clear all</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div id="progressSection" class="hidden">
+        <div class="flex items-center justify-center gap-3 py-4">
+          <svg class="animate-spin h-5 w-5 text-amber-500" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="text-gray-600 dark:text-gray-400" data-i18n="i2pCreating">Creating PDF...</span>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div id="resultSection" class="hidden">
+        <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <svg class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <p class="font-medium text-green-800 dark:text-green-200" data-i18n="i2pSuccess">PDF created successfully!</p>
+                <p class="text-sm text-green-600 dark:text-green-400" id="resultInfo"></p>
+              </div>
+            </div>
+            <button id="downloadBtn" class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span data-i18n="i2pDownload">Download PDF</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="errorSection" class="hidden">
+        <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div class="flex items-center gap-3">
+            <svg class="w-6 h-6 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-800 dark:text-red-200" id="errorMessage"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <FAQ items={tool.faq} />
+  </div>
+</Layout>
+
+<script is:inline>
+(function() {
+  // ==========================================
+  // API URL
+  // ==========================================
+  var API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:8000'
+    : 'https://api.moletools.dev';
+
+  // ==========================================
+  // State
+  // ==========================================
+  var imageFiles = []; // Array of { id, file, thumbUrl }
+  var nextId = 0;
+  var pdfBlob = null;
+
+  // ==========================================
+  // DOM Elements
+  // ==========================================
+  var dropZone = document.getElementById('dropZone');
+  var fileInput = document.getElementById('fileInput');
+  var imageListSection = document.getElementById('imageListSection');
+  var imageList = document.getElementById('imageList');
+  var pageCounter = document.getElementById('pageCounter');
+  var addMoreBtn = document.getElementById('addMoreBtn');
+  var pageSize = document.getElementById('pageSize');
+  var createPdfBtn = document.getElementById('createPdfBtn');
+  var clearAllBtn = document.getElementById('clearAllBtn');
+  var progressSection = document.getElementById('progressSection');
+  var resultSection = document.getElementById('resultSection');
+  var resultInfo = document.getElementById('resultInfo');
+  var downloadBtn = document.getElementById('downloadBtn');
+  var errorSection = document.getElementById('errorSection');
+  var errorMessage = document.getElementById('errorMessage');
+
+  // ==========================================
+  // Utilities
+  // ==========================================
+  function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    var k = 1024;
+    var sizes = ['B', 'KB', 'MB', 'GB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  function updateCounter() {
+    var count = imageFiles.length;
+    var imagesLabel = typeof MoleI18n !== 'undefined' ? MoleI18n.t('i2pImages') : 'images';
+    var pagesLabel = typeof MoleI18n !== 'undefined' ? MoleI18n.t('i2pPages') : 'pages';
+    pageCounter.textContent = count + ' ' + imagesLabel + ' → ' + count + ' ' + pagesLabel;
+  }
+
+  // ==========================================
+  // File Handling
+  // ==========================================
+  function addFiles(files) {
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      if (!file.type.startsWith('image/')) continue;
+      if (file.size > 10 * 1024 * 1024) continue;
+
+      var entry = { id: nextId++, file: file, thumbUrl: '' };
+      imageFiles.push(entry);
+
+      // Create thumbnail
+      (function(e) {
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          e.thumbUrl = ev.target.result;
+          renderList();
+        };
+        reader.readAsDataURL(e.file);
+      })(entry);
+    }
+
+    if (imageFiles.length > 0) {
+      imageListSection.classList.remove('hidden');
+    }
+    updateCounter();
+    // Hide previous result
+    resultSection.classList.add('hidden');
+    errorSection.classList.add('hidden');
+  }
+
+  // ==========================================
+  // Drag-and-Drop on Drop Zone
+  // ==========================================
+  if (dropZone) {
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropZone.classList.add('border-amber-400', 'dark:border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/10');
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('border-amber-400', 'dark:border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/10');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('border-amber-400', 'dark:border-amber-500', 'bg-amber-50', 'dark:bg-amber-900/10');
+      if (e.dataTransfer.files.length > 0) {
+        addFiles(e.dataTransfer.files);
+      }
+    });
+  }
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function() {
+      if (fileInput.files.length > 0) {
+        addFiles(fileInput.files);
+        fileInput.value = '';
+      }
+    });
+  }
+
+  if (addMoreBtn) {
+    addMoreBtn.addEventListener('click', function() { fileInput.click(); });
+  }
+
+  // ==========================================
+  // Render List
+  // ==========================================
+
+
+  function renderList() {
+    imageList.innerHTML = '';
+
+    imageFiles.forEach(function(entry, index) {
+      var card = document.createElement('div');
+      card.className = 'flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg group hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
+      card.draggable = true;
+      card.dataset.index = index;
+      card.style.animation = 'fadeIn 0.2s ease';
+
+      // Drag handle
+      var handle = document.createElement('div');
+      handle.className = 'cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500 flex-shrink-0';
+      handle.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z"/></svg>';
+      card.appendChild(handle);
+
+      // Page number
+      var num = document.createElement('span');
+      num.className = 'text-sm font-mono text-gray-400 dark:text-gray-500 w-6 text-center flex-shrink-0';
+      num.textContent = (index + 1).toString();
+      card.appendChild(num);
+
+      // Thumbnail
+      var thumb = document.createElement('div');
+      thumb.className = 'w-[80px] h-[80px] flex-shrink-0 rounded overflow-hidden bg-white dark:bg-gray-600';
+      if (entry.thumbUrl) {
+        var img = document.createElement('img');
+        img.src = entry.thumbUrl;
+        img.alt = entry.file.name;
+        img.className = 'w-full h-full object-contain';
+        thumb.appendChild(img);
+      }
+      card.appendChild(thumb);
+
+      // File info
+      var info = document.createElement('div');
+      info.className = 'flex-1 min-w-0';
+      var nameEl = document.createElement('p');
+      nameEl.className = 'text-sm font-medium text-gray-900 dark:text-gray-100 truncate';
+      nameEl.textContent = entry.file.name;
+      info.appendChild(nameEl);
+      var sizeEl = document.createElement('p');
+      sizeEl.className = 'text-xs text-gray-500 dark:text-gray-400';
+      sizeEl.textContent = formatBytes(entry.file.size);
+      info.appendChild(sizeEl);
+      card.appendChild(info);
+
+      // Remove button
+      var removeBtn = document.createElement('button');
+      removeBtn.className = 'p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20';
+      removeBtn.title = typeof MoleI18n !== 'undefined' ? MoleI18n.t('i2pRemoveImage') : 'Remove';
+      removeBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+      (function(id) {
+        removeBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          imageFiles = imageFiles.filter(function(f) { return f.id !== id; });
+          renderList();
+          updateCounter();
+          if (imageFiles.length === 0) {
+            imageListSection.classList.add('hidden');
+          }
+        });
+      })(entry.id);
+      card.appendChild(removeBtn);
+
+      // Drag events for reordering
+      card.addEventListener('dragstart', function(e) {
+        dragSrcIndex = index;
+        card.classList.add('opacity-50');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', index.toString());
+      });
+
+      card.addEventListener('dragend', function() {
+        card.classList.remove('opacity-50');
+        // Remove all drag-over highlights
+        imageList.querySelectorAll('.border-t-2').forEach(function(el) {
+          el.classList.remove('border-t-2', 'border-amber-400');
+        });
+      });
+
+      card.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        card.classList.add('border-t-2', 'border-amber-400');
+      });
+
+      card.addEventListener('dragleave', function() {
+        card.classList.remove('border-t-2', 'border-amber-400');
+      });
+
+      card.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        card.classList.remove('border-t-2', 'border-amber-400');
+
+        var fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+        var toIndex = index;
+
+        if (fromIndex !== toIndex && !isNaN(fromIndex)) {
+          var item = imageFiles.splice(fromIndex, 1)[0];
+          imageFiles.splice(toIndex, 0, item);
+          renderList();
+          updateCounter();
+        }
+      });
+
+      imageList.appendChild(card);
+    });
+  }
+
+  // ==========================================
+  // Clear All
+  // ==========================================
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener('click', function() {
+      imageFiles = [];
+      nextId = 0;
+      pdfBlob = null;
+      imageList.innerHTML = '';
+      imageListSection.classList.add('hidden');
+      resultSection.classList.add('hidden');
+      errorSection.classList.add('hidden');
+      updateCounter();
+    });
+  }
+
+  // ==========================================
+  // Create PDF
+  // ==========================================
+  if (createPdfBtn) {
+    createPdfBtn.addEventListener('click', function() {
+      if (imageFiles.length === 0) return;
+
+      resultSection.classList.add('hidden');
+      errorSection.classList.add('hidden');
+      progressSection.classList.remove('hidden');
+      createPdfBtn.disabled = true;
+
+      var formData = new FormData();
+      imageFiles.forEach(function(entry) {
+        formData.append('files', entry.file);
+      });
+      formData.append('page_size', pageSize.value);
+
+      fetch(API_URL + '/convert/images-to-pdf', {
+        method: 'POST',
+        body: formData
+      })
+      .then(function(response) {
+        if (!response.ok) {
+          return response.json().then(function(data) {
+            throw new Error(data.detail || 'Conversion failed');
+          });
+        }
+        return response.blob();
+      })
+      .then(function(blob) {
+        pdfBlob = blob;
+        progressSection.classList.add('hidden');
+        createPdfBtn.disabled = false;
+
+        resultSection.classList.remove('hidden');
+        resultSection.style.animation = 'fadeIn 0.3s ease';
+
+        var pagesLabel = typeof MoleI18n !== 'undefined' ? MoleI18n.t('i2pPages') : 'pages';
+        resultInfo.textContent = imageFiles.length + ' ' + pagesLabel + ' — ' + formatBytes(blob.size);
+      })
+      .catch(function(err) {
+        progressSection.classList.add('hidden');
+        createPdfBtn.disabled = false;
+        errorSection.classList.remove('hidden');
+        errorMessage.textContent = err.message || 'Failed to create PDF. Please try again.';
+      });
+    });
+  }
+
+  // ==========================================
+  // Download
+  // ==========================================
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', function() {
+      if (!pdfBlob) return;
+      var url = URL.createObjectURL(pdfBlob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'images.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // ==========================================
+  // i18n
+  // ==========================================
+  if (typeof MoleI18n !== 'undefined') {
+    MoleI18n.addTranslations('en', {
+      i2pDesc: 'Combine multiple images into a single PDF document',
+      i2pUploadImages: 'Drag & drop images here or click to browse',
+      i2pAddMore: 'Add more',
+      i2pDragToReorder: 'Drag cards to reorder pages',
+      i2pPageSize: 'Page Size',
+      i2pOriginalSize: 'Original Size',
+      i2pCreatePdf: 'Create PDF',
+      i2pClearAll: 'Clear all',
+      i2pCreating: 'Creating PDF...',
+      i2pSuccess: 'PDF created successfully!',
+      i2pDownload: 'Download PDF',
+      i2pImages: 'images',
+      i2pPages: 'pages',
+      i2pRemoveImage: 'Remove'
+    });
+
+    MoleI18n.addTranslations('ru', {
+      i2pDesc: 'Объедините несколько изображений в один PDF-документ',
+      i2pUploadImages: 'Перетащите изображения сюда или нажмите для выбора',
+      i2pAddMore: 'Добавить ещё',
+      i2pDragToReorder: 'Перетащите карточки для сортировки страниц',
+      i2pPageSize: 'Размер страницы',
+      i2pOriginalSize: 'Оригинальный размер',
+      i2pCreatePdf: 'Создать PDF',
+      i2pClearAll: 'Очистить всё',
+      i2pCreating: 'Создание PDF...',
+      i2pSuccess: 'PDF успешно создан!',
+      i2pDownload: 'Скачать PDF',
+      i2pImages: 'изображений',
+      i2pPages: 'страниц',
+      i2pRemoveImage: 'Удалить'
+    });
+
+    var currentLang = MoleI18n.getCurrentLang();
+    MoleI18n.setLanguage(currentLang);
+  }
+})();
+</script>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

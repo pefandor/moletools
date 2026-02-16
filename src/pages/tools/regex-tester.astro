@@ -1,0 +1,302 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'regex-tester');
+const title = tool?.metaTitle || 'Regex Tester';
+const description = tool?.metaDescription || 'Test regular expressions with live highlighting';
+
+// JSON-LD Schema
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: tool?.name || 'Regex Tester',
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      description: tool?.metaDescription || description,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD'
+      }
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: (tool?.faq || []).map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    }
+  ]
+};
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        {tool?.icon} {tool?.name || 'Regex Tester'}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        {tool?.description || 'Test regular expressions with live highlighting'}
+      </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+      <!-- Regex Pattern Input -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Regular Expression Pattern</label>
+        <input
+          type="text"
+          id="regex-pattern"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono"
+          placeholder="Enter regex pattern... (e.g., \d{3}-\d{2}-\d{4})"
+          value="\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b"
+        />
+      </div>
+
+      <!-- Regex Flags -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Flags</label>
+        <div class="flex flex-wrap gap-4">
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              id="flag-g"
+              checked
+              class="w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">g (global)</span>
+          </label>
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              id="flag-i"
+              checked
+              class="w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">i (case-insensitive)</span>
+          </label>
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              id="flag-m"
+              class="w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">m (multiline)</span>
+          </label>
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              id="flag-s"
+              class="w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">s (dotAll)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div id="regex-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-sm text-red-600"></p>
+      </div>
+
+      <!-- Match Count -->
+      <div id="match-count" class="mb-4">
+        <p class="text-sm font-medium text-gray-700">Matches: <span id="match-count-value" class="text-primary-600">0</span></p>
+      </div>
+    </div>
+
+    <!-- Test Text and Results -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <!-- Test Text -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Test Text</h2>
+        <textarea
+          id="test-text"
+          rows="15"
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-y font-mono text-sm"
+          placeholder="Enter test text here..."
+        >Contact us at support@example.com or sales@company.org
+You can also reach admin@test.net for technical issues.
+For general inquiries: info@business.co.uk</textarea>
+      </div>
+
+      <!-- Highlighted Results -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Highlighted Matches</h2>
+        <div
+          id="highlighted-text"
+          class="p-4 border border-gray-300 dark:border-gray-600 rounded-lg min-h-[360px] bg-gray-50 dark:bg-gray-700 font-mono text-sm whitespace-pre-wrap break-words"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Match Details -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Match Details</h2>
+      <div id="match-details" class="space-y-2">
+        <p class="text-sm text-gray-500">No matches found. Try entering a pattern and test text.</p>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    {tool?.faq && tool.faq.length > 0 && (
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4">
+          {tool.faq.map((item) => (
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.question}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{item.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <script>
+    (function() {
+      var regexPattern = document.getElementById('regex-pattern');
+      var flagG = document.getElementById('flag-g');
+      var flagI = document.getElementById('flag-i');
+      var flagM = document.getElementById('flag-m');
+      var flagS = document.getElementById('flag-s');
+      var testText = document.getElementById('test-text');
+      var highlightedText = document.getElementById('highlighted-text');
+      var matchDetails = document.getElementById('match-details');
+      var regexError = document.getElementById('regex-error');
+      var matchCountValue = document.getElementById('match-count-value');
+
+      function escapeHtml(text) {
+        var map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+      }
+
+      function testRegex() {
+        var pattern = regexPattern.value;
+        var text = testText.value;
+
+        // Clear previous error
+        regexError.classList.add('hidden');
+        regexError.querySelector('p').textContent = '';
+
+        if (!pattern) {
+          highlightedText.textContent = text;
+          matchDetails.innerHTML = '<p class="text-sm text-gray-500">Enter a regex pattern to test.</p>';
+          matchCountValue.textContent = '0';
+          return;
+        }
+
+        try {
+          // Build flags
+          var flags = '';
+          if (flagG.checked) flags += 'g';
+          if (flagI.checked) flags += 'i';
+          if (flagM.checked) flags += 'm';
+          if (flagS.checked) flags += 's';
+
+          var regex = new RegExp(pattern, flags);
+          var matches = [];
+          var match;
+
+          // Find all matches
+          if (flags.includes('g')) {
+            while ((match = regex.exec(text)) !== null) {
+              matches.push({
+                text: match[0],
+                index: match.index,
+                groups: match.slice(1)
+              });
+            }
+          } else {
+            match = regex.exec(text);
+            if (match) {
+              matches.push({
+                text: match[0],
+                index: match.index,
+                groups: match.slice(1)
+              });
+            }
+          }
+
+          // Update match count
+          matchCountValue.textContent = matches.length;
+
+          // Highlight matches
+          if (matches.length > 0) {
+            var highlighted = '';
+            var lastIndex = 0;
+
+            matches.forEach(function(m) {
+              highlighted += escapeHtml(text.substring(lastIndex, m.index));
+              highlighted += '<mark class="bg-yellow-200 px-1 rounded">' + escapeHtml(m.text) + '</mark>';
+              lastIndex = m.index + m.text.length;
+            });
+            highlighted += escapeHtml(text.substring(lastIndex));
+
+            highlightedText.innerHTML = highlighted;
+
+            // Show match details
+            var detailsHtml = '';
+            matches.forEach(function(m, i) {
+              detailsHtml += '<div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">';
+              detailsHtml += '<p class="text-sm font-medium text-gray-900 dark:text-gray-100">Match ' + (i + 1) + ':</p>';
+              detailsHtml += '<p class="text-sm text-gray-700 dark:text-gray-300 mt-1">Text: <code class="bg-white px-2 py-1 rounded">' + escapeHtml(m.text) + '</code></p>';
+              detailsHtml += '<p class="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">Position: ' + m.index + ' - ' + (m.index + m.text.length) + '</p>';
+              if (m.groups.length > 0 && m.groups.some(function(g) { return g !== undefined; })) {
+                detailsHtml += '<p class="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">Groups: ' + m.groups.filter(function(g) { return g !== undefined; }).map(function(g) { return escapeHtml(g); }).join(', ') + '</p>';
+              }
+              detailsHtml += '</div>';
+            });
+            matchDetails.innerHTML = detailsHtml;
+          } else {
+            highlightedText.textContent = text;
+            matchDetails.innerHTML = '<p class="text-sm text-gray-500">No matches found.</p>';
+          }
+
+        } catch (e) {
+          regexError.classList.remove('hidden');
+          regexError.querySelector('p').textContent = 'Invalid regex: ' + e.message;
+          highlightedText.textContent = text;
+          matchDetails.innerHTML = '<p class="text-sm text-red-600">Cannot show matches due to regex error.</p>';
+          matchCountValue.textContent = '0';
+        }
+      }
+
+      // Event listeners
+      if (regexPattern) regexPattern.addEventListener('input', testRegex);
+      if (testText) testText.addEventListener('input', testRegex);
+      if (flagG) flagG.addEventListener('change', testRegex);
+      if (flagI) flagI.addEventListener('change', testRegex);
+      if (flagM) flagM.addEventListener('change', testRegex);
+      if (flagS) flagS.addEventListener('change', testRegex);
+
+      // Initial test
+      testRegex();
+    })();
+  </script>
+
+  <style>
+    mark {
+      background-color: #fef08a;
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+  </style>
+</Layout>

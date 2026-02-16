@@ -1,0 +1,467 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'hash-generator');
+const title = tool?.metaTitle || 'Hash Generator';
+const description = tool?.metaDescription || 'Generate MD5, SHA-1, SHA-256, SHA-512 hashes';
+
+// JSON-LD Schema
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: tool?.name || 'Hash Generator',
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      description: tool?.metaDescription || description,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD'
+      }
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: (tool?.faq || []).map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    }
+  ]
+};
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        {tool?.icon} {tool?.name || 'Hash Generator'}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        {tool?.description || 'Generate MD5, SHA-1, SHA-256, SHA-512 hashes'}
+      </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+      <!-- Input Type Selection -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Input Type</label>
+        <div class="flex gap-4">
+          <label class="flex items-center">
+            <input
+              type="radio"
+              name="input-type"
+              value="text"
+              checked
+              id="input-type-text"
+              class="w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 focus:ring-primary-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">Text</span>
+          </label>
+          <label class="flex items-center">
+            <input
+              type="radio"
+              name="input-type"
+              value="file"
+              id="input-type-file"
+              class="w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 focus:ring-primary-500"
+            />
+            <span class="ml-2 text-sm text-gray-700">File</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Text Input -->
+      <div id="text-input-container" class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Text to Hash</label>
+        <textarea
+          id="text-input"
+          rows="4"
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-y font-mono text-sm"
+          placeholder="Enter text to generate hashes..."
+        ></textarea>
+      </div>
+
+      <!-- File Input -->
+      <div id="file-input-container" class="mb-6 hidden">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select File to Hash</label>
+        <input
+          type="file"
+          id="file-input"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+        />
+        <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-2">File size limit: 100MB</p>
+      </div>
+
+      <!-- Hash Results -->
+      <div class="space-y-4">
+        <!-- MD5 -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-medium text-gray-700">MD5</label>
+            <button
+              id="copy-md5"
+              class="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:bg-gray-600 transition-colors"
+            >
+              📋 Copy
+            </button>
+          </div>
+          <input
+            type="text"
+            id="md5-output"
+            readonly
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 font-mono text-sm"
+            placeholder="MD5 hash will appear here..."
+          />
+        </div>
+
+        <!-- SHA-1 -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-medium text-gray-700">SHA-1</label>
+            <button
+              id="copy-sha1"
+              class="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:bg-gray-600 transition-colors"
+            >
+              📋 Copy
+            </button>
+          </div>
+          <input
+            type="text"
+            id="sha1-output"
+            readonly
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 font-mono text-sm"
+            placeholder="SHA-1 hash will appear here..."
+          />
+        </div>
+
+        <!-- SHA-256 -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-medium text-gray-700">SHA-256</label>
+            <button
+              id="copy-sha256"
+              class="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:bg-gray-600 transition-colors"
+            >
+              📋 Copy
+            </button>
+          </div>
+          <input
+            type="text"
+            id="sha256-output"
+            readonly
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 font-mono text-sm"
+            placeholder="SHA-256 hash will appear here..."
+          />
+        </div>
+
+        <!-- SHA-512 -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-medium text-gray-700">SHA-512</label>
+            <button
+              id="copy-sha512"
+              class="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:bg-gray-600 transition-colors"
+            >
+              📋 Copy
+            </button>
+          </div>
+          <input
+            type="text"
+            id="sha512-output"
+            readonly
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 font-mono text-sm"
+            placeholder="SHA-512 hash will appear here..."
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    {tool?.faq && tool.faq.length > 0 && (
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Frequently Asked Questions</h2>
+        <div class="space-y-4">
+          {tool.faq.map((item) => (
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{item.question}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{item.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <script>
+    (function() {
+      var textInputContainer = document.getElementById('text-input-container');
+      var fileInputContainer = document.getElementById('file-input-container');
+      var inputTypeText = document.getElementById('input-type-text');
+      var inputTypeFile = document.getElementById('input-type-file');
+      var textInput = document.getElementById('text-input');
+      var fileInput = document.getElementById('file-input');
+      var md5Output = document.getElementById('md5-output');
+      var sha1Output = document.getElementById('sha1-output');
+      var sha256Output = document.getElementById('sha256-output');
+      var sha512Output = document.getElementById('sha512-output');
+
+      // Simple MD5 implementation
+      function md5(string) {
+        function rotateLeft(value, shift) {
+          return (value << shift) | (value >>> (32 - shift));
+        }
+        function addUnsigned(x, y) {
+          var lsw = (x & 0xFFFF) + (y & 0xFFFF);
+          var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+          return (msw << 16) | (lsw & 0xFFFF);
+        }
+        function f(x, y, z) { return (x & y) | ((~x) & z); }
+        function g(x, y, z) { return (x & z) | (y & (~z)); }
+        function h(x, y, z) { return x ^ y ^ z; }
+        function i(x, y, z) { return y ^ (x | (~z)); }
+        function ff(a, b, c, d, x, s, ac) {
+          a = addUnsigned(a, addUnsigned(addUnsigned(f(b, c, d), x), ac));
+          return addUnsigned(rotateLeft(a, s), b);
+        }
+        function gg(a, b, c, d, x, s, ac) {
+          a = addUnsigned(a, addUnsigned(addUnsigned(g(b, c, d), x), ac));
+          return addUnsigned(rotateLeft(a, s), b);
+        }
+        function hh(a, b, c, d, x, s, ac) {
+          a = addUnsigned(a, addUnsigned(addUnsigned(h(b, c, d), x), ac));
+          return addUnsigned(rotateLeft(a, s), b);
+        }
+        function ii(a, b, c, d, x, s, ac) {
+          a = addUnsigned(a, addUnsigned(addUnsigned(i(b, c, d), x), ac));
+          return addUnsigned(rotateLeft(a, s), b);
+        }
+        function convertToWordArray(string) {
+          var wordCount = ((string.length + 8) >> 6) + 1;
+          var messageLength = wordCount * 16;
+          var wordArray = new Array(messageLength - 1);
+          var bytePosition = 0, byteCount = 0;
+          while (byteCount < string.length) {
+            wordArray[bytePosition >> 2] = wordArray[bytePosition >> 2] | ((string.charCodeAt(byteCount) & 0xFF) << ((byteCount % 4) * 8));
+            byteCount++;
+            bytePosition++;
+          }
+          wordArray[bytePosition >> 2] = wordArray[bytePosition >> 2] | (0x80 << ((byteCount % 4) * 8));
+          wordArray[messageLength - 2] = string.length * 8;
+          return wordArray;
+        }
+        function wordToHex(value) {
+          var hex = '', byte;
+          for (var count = 0; count <= 3; count++) {
+            byte = (value >>> (count * 8)) & 255;
+            hex = hex + ('0' + byte.toString(16)).slice(-2);
+          }
+          return hex;
+        }
+        var x = convertToWordArray(string);
+        var a = 0x67452301, b = 0xEFCDAB89, c = 0x98BADCFE, d = 0x10325476;
+        for (var k = 0; k < x.length; k += 16) {
+          var AA = a, BB = b, CC = c, DD = d;
+          a = ff(a, b, c, d, x[k + 0], 7, 0xD76AA478);
+          d = ff(d, a, b, c, x[k + 1], 12, 0xE8C7B756);
+          c = ff(c, d, a, b, x[k + 2], 17, 0x242070DB);
+          b = ff(b, c, d, a, x[k + 3], 22, 0xC1BDCEEE);
+          a = ff(a, b, c, d, x[k + 4], 7, 0xF57C0FAF);
+          d = ff(d, a, b, c, x[k + 5], 12, 0x4787C62A);
+          c = ff(c, d, a, b, x[k + 6], 17, 0xA8304613);
+          b = ff(b, c, d, a, x[k + 7], 22, 0xFD469501);
+          a = ff(a, b, c, d, x[k + 8], 7, 0x698098D8);
+          d = ff(d, a, b, c, x[k + 9], 12, 0x8B44F7AF);
+          c = ff(c, d, a, b, x[k + 10], 17, 0xFFFF5BB1);
+          b = ff(b, c, d, a, x[k + 11], 22, 0x895CD7BE);
+          a = ff(a, b, c, d, x[k + 12], 7, 0x6B901122);
+          d = ff(d, a, b, c, x[k + 13], 12, 0xFD987193);
+          c = ff(c, d, a, b, x[k + 14], 17, 0xA679438E);
+          b = ff(b, c, d, a, x[k + 15], 22, 0x49B40821);
+          a = gg(a, b, c, d, x[k + 1], 5, 0xF61E2562);
+          d = gg(d, a, b, c, x[k + 6], 9, 0xC040B340);
+          c = gg(c, d, a, b, x[k + 11], 14, 0x265E5A51);
+          b = gg(b, c, d, a, x[k + 0], 20, 0xE9B6C7AA);
+          a = gg(a, b, c, d, x[k + 5], 5, 0xD62F105D);
+          d = gg(d, a, b, c, x[k + 10], 9, 0x2441453);
+          c = gg(c, d, a, b, x[k + 15], 14, 0xD8A1E681);
+          b = gg(b, c, d, a, x[k + 4], 20, 0xE7D3FBC8);
+          a = gg(a, b, c, d, x[k + 9], 5, 0x21E1CDE6);
+          d = gg(d, a, b, c, x[k + 14], 9, 0xC33707D6);
+          c = gg(c, d, a, b, x[k + 3], 14, 0xF4D50D87);
+          b = gg(b, c, d, a, x[k + 8], 20, 0x455A14ED);
+          a = gg(a, b, c, d, x[k + 13], 5, 0xA9E3E905);
+          d = gg(d, a, b, c, x[k + 2], 9, 0xFCEFA3F8);
+          c = gg(c, d, a, b, x[k + 7], 14, 0x676F02D9);
+          b = gg(b, c, d, a, x[k + 12], 20, 0x8D2A4C8A);
+          a = hh(a, b, c, d, x[k + 5], 4, 0xFFFA3942);
+          d = hh(d, a, b, c, x[k + 8], 11, 0x8771F681);
+          c = hh(c, d, a, b, x[k + 11], 16, 0x6D9D6122);
+          b = hh(b, c, d, a, x[k + 14], 23, 0xFDE5380C);
+          a = hh(a, b, c, d, x[k + 1], 4, 0xA4BEEA44);
+          d = hh(d, a, b, c, x[k + 4], 11, 0x4BDECFA9);
+          c = hh(c, d, a, b, x[k + 7], 16, 0xF6BB4B60);
+          b = hh(b, c, d, a, x[k + 10], 23, 0xBEBFBC70);
+          a = hh(a, b, c, d, x[k + 13], 4, 0x289B7EC6);
+          d = hh(d, a, b, c, x[k + 0], 11, 0xEAA127FA);
+          c = hh(c, d, a, b, x[k + 3], 16, 0xD4EF3085);
+          b = hh(b, c, d, a, x[k + 6], 23, 0x4881D05);
+          a = hh(a, b, c, d, x[k + 9], 4, 0xD9D4D039);
+          d = hh(d, a, b, c, x[k + 12], 11, 0xE6DB99E5);
+          c = hh(c, d, a, b, x[k + 15], 16, 0x1FA27CF8);
+          b = hh(b, c, d, a, x[k + 2], 23, 0xC4AC5665);
+          a = ii(a, b, c, d, x[k + 0], 6, 0xF4292244);
+          d = ii(d, a, b, c, x[k + 7], 10, 0x432AFF97);
+          c = ii(c, d, a, b, x[k + 14], 15, 0xAB9423A7);
+          b = ii(b, c, d, a, x[k + 5], 21, 0xFC93A039);
+          a = ii(a, b, c, d, x[k + 12], 6, 0x655B59C3);
+          d = ii(d, a, b, c, x[k + 3], 10, 0x8F0CCC92);
+          c = ii(c, d, a, b, x[k + 10], 15, 0xFFEFF47D);
+          b = ii(b, c, d, a, x[k + 1], 21, 0x85845DD1);
+          a = ii(a, b, c, d, x[k + 8], 6, 0x6FA87E4F);
+          d = ii(d, a, b, c, x[k + 15], 10, 0xFE2CE6E0);
+          c = ii(c, d, a, b, x[k + 6], 15, 0xA3014314);
+          b = ii(b, c, d, a, x[k + 13], 21, 0x4E0811A1);
+          a = ii(a, b, c, d, x[k + 4], 6, 0xF7537E82);
+          d = ii(d, a, b, c, x[k + 11], 10, 0xBD3AF235);
+          c = ii(c, d, a, b, x[k + 2], 15, 0x2AD7D2BB);
+          b = ii(b, c, d, a, x[k + 9], 21, 0xEB86D391);
+          a = addUnsigned(a, AA);
+          b = addUnsigned(b, BB);
+          c = addUnsigned(c, CC);
+          d = addUnsigned(d, DD);
+        }
+        return (wordToHex(a) + wordToHex(b) + wordToHex(c) + wordToHex(d)).toLowerCase();
+      }
+
+      async function generateHashes(input) {
+        var encoder = new TextEncoder();
+        var data = encoder.encode(input);
+
+        // MD5
+        md5Output.value = md5(input);
+
+        // SHA-1
+        var sha1Buffer = await crypto.subtle.digest('SHA-1', data);
+        sha1Output.value = arrayBufferToHex(sha1Buffer);
+
+        // SHA-256
+        var sha256Buffer = await crypto.subtle.digest('SHA-256', data);
+        sha256Output.value = arrayBufferToHex(sha256Buffer);
+
+        // SHA-512
+        var sha512Buffer = await crypto.subtle.digest('SHA-512', data);
+        sha512Output.value = arrayBufferToHex(sha512Buffer);
+      }
+
+      async function generateHashesFromFile(file) {
+        if (file.size > 100 * 1024 * 1024) {
+          alert('File too large. Maximum size is 100MB.');
+          return;
+        }
+
+        var arrayBuffer = await file.arrayBuffer();
+        var uint8Array = new Uint8Array(arrayBuffer);
+
+        // Convert to string for MD5
+        var text = '';
+        for (var i = 0; i < uint8Array.length; i++) {
+          text += String.fromCharCode(uint8Array[i]);
+        }
+        md5Output.value = md5(text);
+
+        // SHA hashes
+        var sha1Buffer = await crypto.subtle.digest('SHA-1', arrayBuffer);
+        sha1Output.value = arrayBufferToHex(sha1Buffer);
+
+        var sha256Buffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+        sha256Output.value = arrayBufferToHex(sha256Buffer);
+
+        var sha512Buffer = await crypto.subtle.digest('SHA-512', arrayBuffer);
+        sha512Output.value = arrayBufferToHex(sha512Buffer);
+      }
+
+      function arrayBufferToHex(buffer) {
+        var bytes = new Uint8Array(buffer);
+        var hex = '';
+        for (var i = 0; i < bytes.length; i++) {
+          hex += ('0' + bytes[i].toString(16)).slice(-2);
+        }
+        return hex;
+      }
+
+      function setupCopyButton(buttonId, outputId) {
+        var btn = document.getElementById(buttonId);
+        var output = document.getElementById(outputId);
+        if (btn && output) {
+          btn.addEventListener('click', function() {
+            if (output.value) {
+              navigator.clipboard.writeText(output.value);
+              var originalText = btn.textContent;
+              btn.textContent = '✓ Copied';
+              setTimeout(function() { btn.textContent = originalText; }, 2000);
+            }
+          });
+        }
+      }
+
+      // Toggle input type
+      if (inputTypeText) {
+        inputTypeText.addEventListener('change', function() {
+          if (inputTypeText.checked) {
+            textInputContainer.classList.remove('hidden');
+            fileInputContainer.classList.add('hidden');
+          }
+        });
+      }
+
+      if (inputTypeFile) {
+        inputTypeFile.addEventListener('change', function() {
+          if (inputTypeFile.checked) {
+            textInputContainer.classList.add('hidden');
+            fileInputContainer.classList.remove('hidden');
+          }
+        });
+      }
+
+      // Text input handler
+      if (textInput) {
+        textInput.addEventListener('input', function() {
+          var text = textInput.value;
+          if (text) {
+            generateHashes(text);
+          } else {
+            md5Output.value = '';
+            sha1Output.value = '';
+            sha256Output.value = '';
+            sha512Output.value = '';
+          }
+        });
+      }
+
+      // File input handler
+      if (fileInput) {
+        fileInput.addEventListener('change', function() {
+          var file = fileInput.files[0];
+          if (file) {
+            generateHashesFromFile(file);
+          }
+        });
+      }
+
+      // Setup copy buttons
+      setupCopyButton('copy-md5', 'md5-output');
+      setupCopyButton('copy-sha1', 'sha1-output');
+      setupCopyButton('copy-sha256', 'sha256-output');
+      setupCopyButton('copy-sha512', 'sha512-output');
+    })();
+  </script>
+</Layout>

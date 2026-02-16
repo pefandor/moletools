@@ -1,0 +1,803 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FAQ from '../../components/FAQ.astro';
+import toolsData from '../../data/tools.json';
+
+const tool = toolsData.find(t => t.id === 'qr-scanner');
+const title = tool?.metaTitle || 'QR Code Scanner - Free Online QR Reader';
+const description = tool?.metaDescription || 'Free online QR code scanner and reader. Scan QR codes using your camera or upload images.';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: tool?.name || 'QR Code Scanner',
+  description: description,
+  url: `https://moletools.dev${tool?.path}`,
+  applicationCategory: 'UtilityApplication',
+  operatingSystem: 'Any',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD'
+  }
+};
+
+const faqJsonLd = tool?.faq ? {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: tool.faq.map((item: { question: string; answer: string }) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer
+    }
+  }))
+} : null;
+---
+
+<Layout title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  {faqJsonLd && <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />}
+
+  <div class="max-w-4xl mx-auto px-4">
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100">
+          <img src="/images/mole/Encoder.png" alt="MoleTools" class="inline h-14 w-14 mr-2 object-contain" style="vertical-align: -10px;" />
+          <span data-i18n="pageTitle">{tool?.name || 'QR Code Scanner'}</span>
+        </h1>
+        <div class="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+          <button id="lang-en" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors">EN</button>
+          <button id="lang-ru" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors">RU</button>
+        </div>
+      </div>
+      <p class="text-lg text-gray-600 dark:text-gray-400" data-i18n="pageDesc">
+        {tool?.description || 'Scan QR codes using camera or upload images'}
+      </p>
+    </div>
+
+    <!-- Tab Switcher -->
+    <div class="mb-6">
+      <div class="flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg inline-flex">
+        <button id="tab-camera" class="px-6 py-2.5 rounded-md text-sm font-medium transition-colors tab-button active">
+          <span data-i18n="camera">📷 Camera</span>
+        </button>
+        <button id="tab-upload" class="px-6 py-2.5 rounded-md text-sm font-medium transition-colors tab-button">
+          <span data-i18n="uploadImage">🖼️ Upload Image</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Scanner Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border-l-4 border-violet-400 mb-6">
+      <div class="bg-gradient-to-r from-violet-50 to-white dark:from-gray-800 dark:to-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100" data-i18n="scanQr">Scan QR Code</h2>
+      </div>
+
+      <div class="p-6">
+        <!-- Camera Tab Content -->
+        <div id="camera-content" class="tab-content">
+          <!-- Camera Controls -->
+          <div class="flex gap-2 mb-4 flex-wrap">
+            <button id="start-camera-btn" class="px-4 py-2 bg-violet-500 hover:bg-violet-600 text-white font-medium rounded-lg transition-all">
+              <span data-i18n="startCamera">📷 Start Camera</span>
+            </button>
+            <button id="stop-camera-btn" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-all hidden">
+              <span data-i18n="stopCamera">⏹ Stop Camera</span>
+            </button>
+            <button id="switch-camera-btn" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all hidden">
+              <span data-i18n="switchCamera">🔄 Switch Camera</span>
+            </button>
+            <button id="toggle-flash-btn" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all hidden">
+              <span data-i18n="toggleFlashlight">💡 Flashlight</span>
+            </button>
+          </div>
+
+          <!-- Video/Canvas Container -->
+          <div class="flex justify-center">
+            <div class="relative">
+              <video id="camera-video" class="hidden rounded-xl border-2 border-gray-200 dark:border-gray-600" autoplay playsinline style="max-width: 500px; width: 100%;"></video>
+              <canvas id="camera-canvas" class="rounded-xl border-2 border-gray-200 dark:border-gray-600" style="max-width: 500px; width: 100%;"></canvas>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div id="camera-empty" class="text-center py-12">
+            <img src="/images/mole/Encoder.png" alt="" class="w-32 mx-auto opacity-80 mb-4" />
+            <p class="text-gray-400 dark:text-gray-500" data-i18n="pointCamera">Point camera at QR code</p>
+          </div>
+
+          <!-- Skeleton Loader -->
+          <div id="camera-skeleton" class="hidden text-center py-12">
+            <div class="skeleton-spinner mx-auto mb-4"></div>
+            <p class="text-gray-400 dark:text-gray-500" data-i18n="loadingCamera">Loading camera...</p>
+          </div>
+        </div>
+
+        <!-- Upload Tab Content -->
+        <div id="upload-content" class="tab-content hidden">
+          <!-- Drag & Drop Zone -->
+          <div id="drop-zone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center hover:border-violet-400 dark:hover:border-violet-500 transition-colors cursor-pointer">
+            <img src="/images/mole/Encoder.png" alt="" class="w-24 mx-auto opacity-80 mb-4" />
+            <p class="text-lg text-gray-700 dark:text-gray-300 mb-2" data-i18n="dragDrop">Drag & drop an image here</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4" data-i18n="or">or</p>
+            <label for="file-input" class="px-6 py-2.5 bg-violet-500 hover:bg-violet-600 text-white font-medium rounded-lg transition-all cursor-pointer inline-block">
+              <span data-i18n="chooseFile">Choose File</span>
+            </label>
+            <input type="file" id="file-input" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" />
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-3">PNG, JPG, WebP</p>
+          </div>
+
+          <!-- Upload Canvas -->
+          <div id="upload-preview" class="hidden flex justify-center mt-6">
+            <canvas id="upload-canvas" class="rounded-xl border-2 border-gray-200 dark:border-gray-600" style="max-width: 500px; width: 100%;"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result Card -->
+    <div id="result-card" class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border-l-4 border-green-400 mb-6 hidden result-slidedown">
+      <div class="bg-gradient-to-r from-green-50 to-white dark:from-gray-800 dark:to-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100" data-i18n="result">Result</h2>
+          <button id="scan-again-btn" class="px-4 py-2 bg-violet-500 hover:bg-violet-600 text-white text-sm font-medium rounded-lg transition-all">
+            <span data-i18n="scanAgain">🔄 Scan Again</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <!-- Detected Type Badge -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-medium text-gray-500 dark:text-gray-400" data-i18n="detectedType">Type:</span>
+          <span id="result-type" class="text-xs font-bold px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">TEXT</span>
+        </div>
+
+        <!-- Result Text -->
+        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+          <p id="result-text" class="text-lg font-mono text-gray-900 dark:text-gray-100 break-all"></p>
+        </div>
+
+        <!-- WiFi Fields (hidden by default) -->
+        <div id="wifi-fields" class="hidden space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1" data-i18n="wifiNetwork">WiFi Network</label>
+            <input type="text" id="wifi-ssid" readonly class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1" data-i18n="wifiPassword">WiFi Password</label>
+            <input type="text" id="wifi-password" readonly class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 text-sm" />
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-2 flex-wrap">
+          <button id="copy-result-btn" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">
+            <span data-i18n="copyResult">📋 Copy</span>
+          </button>
+          <a id="open-link-btn" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-all">
+            <span data-i18n="openLink">🔗 Open Link</span>
+          </a>
+          <a id="send-email-btn" href="#" class="hidden px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-all">
+            <span data-i18n="sendEmail">📧 Send Email</span>
+          </a>
+          <a id="call-btn" href="#" class="hidden px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-all">
+            <span data-i18n="call">📞 Call</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scan History -->
+    <div id="history-card" class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border-l-4 border-gray-400 mb-6 hidden">
+      <div class="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100" data-i18n="scanHistory">Scan History</h2>
+      </div>
+      <div id="history-list" class="divide-y divide-gray-100 dark:divide-gray-700 max-h-96 overflow-y-auto">
+        <!-- History items will be added here -->
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    {tool?.faq && (
+      <div class="mt-12">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+          Frequently Asked Questions
+        </h2>
+        <div class="space-y-4">
+          {tool.faq.map((item: { question: string; answer: string }) => (
+            <FAQ question={item.question} answer={item.answer} />
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- Include jsQR library from CDN -->
+  <script is:inline src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+  <script is:inline>
+    (function() {
+      // ===== Translations =====
+      var translations = {
+        en: {
+          pageTitle: 'QR Code Scanner',
+          pageDesc: 'Scan QR codes using camera or upload images',
+          camera: '📷 Camera',
+          uploadImage: '🖼️ Upload Image',
+          scanQr: 'Scan QR Code',
+          startCamera: '📷 Start Camera',
+          stopCamera: '⏹ Stop Camera',
+          switchCamera: '🔄 Switch Camera',
+          toggleFlashlight: '💡 Flashlight',
+          pointCamera: 'Point camera at QR code',
+          loadingCamera: 'Loading camera...',
+          dragDrop: 'Drag & drop an image here',
+          or: 'or',
+          chooseFile: 'Choose File',
+          result: 'Result',
+          scanAgain: '🔄 Scan Again',
+          detectedType: 'Type:',
+          wifiNetwork: 'WiFi Network',
+          wifiPassword: 'WiFi Password',
+          copyResult: '📋 Copy',
+          openLink: '🔗 Open Link',
+          sendEmail: '📧 Send Email',
+          call: '📞 Call',
+          scanHistory: 'Scan History',
+          noResultYet: 'No results yet',
+          copied: 'Copied!',
+          text: 'TEXT',
+          url: 'URL',
+          email: 'EMAIL',
+          phone: 'PHONE',
+          wifi: 'WiFi',
+          vcard: 'vCard',
+          noQrFound: 'No QR code found in image',
+          cameraError: 'Camera access denied or unavailable'
+        },
+        ru: {
+          pageTitle: 'Сканер QR-кодов',
+          pageDesc: 'Сканируйте QR-коды камерой или загрузите изображение',
+          camera: '📷 Камера',
+          uploadImage: '🖼️ Загрузить изображение',
+          scanQr: 'Сканировать QR-код',
+          startCamera: '📷 Запустить камеру',
+          stopCamera: '⏹ Остановить',
+          switchCamera: '🔄 Переключить камеру',
+          toggleFlashlight: '💡 Фонарик',
+          pointCamera: 'Наведите камеру на QR-код',
+          loadingCamera: 'Загрузка камеры...',
+          dragDrop: 'Перетащите изображение сюда',
+          or: 'или',
+          chooseFile: 'Выбрать файл',
+          result: 'Результат',
+          scanAgain: '🔄 Сканировать снова',
+          detectedType: 'Тип:',
+          wifiNetwork: 'Сеть WiFi',
+          wifiPassword: 'Пароль WiFi',
+          copyResult: '📋 Копировать',
+          openLink: '🔗 Открыть ссылку',
+          sendEmail: '📧 Отправить email',
+          call: '📞 Позвонить',
+          scanHistory: 'История сканирований',
+          noResultYet: 'Результатов пока нет',
+          copied: 'Скопировано!',
+          text: 'ТЕКСТ',
+          url: 'ССЫЛКА',
+          email: 'EMAIL',
+          phone: 'ТЕЛЕФОН',
+          wifi: 'WiFi',
+          vcard: 'vCard',
+          noQrFound: 'QR-код не найден на изображении',
+          cameraError: 'Доступ к камере запрещён или камера недоступна'
+        }
+      };
+
+      var currentLang = localStorage.getItem('lang') || 'en';
+
+      function t(key) {
+        return translations[currentLang][key] || translations.en[key] || key;
+      }
+
+      function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('lang', lang);
+
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+          var key = el.getAttribute('data-i18n');
+          el.textContent = t(key);
+        });
+
+        var langEnBtn = document.getElementById('lang-en');
+        var langRuBtn = document.getElementById('lang-ru');
+
+        if (lang === 'en') {
+          langEnBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-amber-500 text-white';
+          langRuBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-transparent text-gray-600 dark:text-gray-400';
+        } else {
+          langRuBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-amber-500 text-white';
+          langEnBtn.className = 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors bg-transparent text-gray-600 dark:text-gray-400';
+        }
+      }
+
+      // DOM refs
+      var tabCameraBtn = document.getElementById('tab-camera');
+      var tabUploadBtn = document.getElementById('tab-upload');
+      var cameraContent = document.getElementById('camera-content');
+      var uploadContent = document.getElementById('upload-content');
+
+      var startCameraBtn = document.getElementById('start-camera-btn');
+      var stopCameraBtn = document.getElementById('stop-camera-btn');
+      var switchCameraBtn = document.getElementById('switch-camera-btn');
+      var toggleFlashBtn = document.getElementById('toggle-flash-btn');
+
+      var cameraVideo = document.getElementById('camera-video');
+      var cameraCanvas = document.getElementById('camera-canvas');
+      var cameraEmpty = document.getElementById('camera-empty');
+      var cameraSkeleton = document.getElementById('camera-skeleton');
+
+      var dropZone = document.getElementById('drop-zone');
+      var fileInput = document.getElementById('file-input');
+      var uploadCanvas = document.getElementById('upload-canvas');
+      var uploadPreview = document.getElementById('upload-preview');
+
+      var resultCard = document.getElementById('result-card');
+      var resultText = document.getElementById('result-text');
+      var resultType = document.getElementById('result-type');
+      var wifiFields = document.getElementById('wifi-fields');
+      var wifiSsid = document.getElementById('wifi-ssid');
+      var wifiPassword = document.getElementById('wifi-password');
+
+      var copyResultBtn = document.getElementById('copy-result-btn');
+      var openLinkBtn = document.getElementById('open-link-btn');
+      var sendEmailBtn = document.getElementById('send-email-btn');
+      var callBtn = document.getElementById('call-btn');
+      var scanAgainBtn = document.getElementById('scan-again-btn');
+
+      var historyCard = document.getElementById('history-card');
+      var historyList = document.getElementById('history-list');
+
+      // State
+      var stream = null;
+      var animationFrameId = null;
+      var currentFacingMode = 'environment';
+      var flashOn = false;
+      var scanHistory = [];
+      var audioContext = null;
+
+      // ===== Tab Switching =====
+      function switchTab(tab) {
+        if (tab === 'camera') {
+          tabCameraBtn.classList.add('active');
+          tabUploadBtn.classList.remove('active');
+          cameraContent.classList.remove('hidden');
+          uploadContent.classList.add('hidden');
+        } else {
+          tabUploadBtn.classList.add('active');
+          tabCameraBtn.classList.remove('active');
+          uploadContent.classList.remove('hidden');
+          cameraContent.classList.add('hidden');
+          stopCamera();
+        }
+      }
+
+      // ===== Camera Functions =====
+      async function startCamera() {
+        try {
+          cameraEmpty.classList.add('hidden');
+          cameraSkeleton.classList.remove('hidden');
+
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: currentFacingMode }
+          });
+
+          cameraVideo.srcObject = stream;
+          await cameraVideo.play();
+
+          cameraSkeleton.classList.add('hidden');
+          cameraVideo.classList.remove('hidden');
+
+          // Set canvas size to match video
+          cameraCanvas.width = cameraVideo.videoWidth;
+          cameraCanvas.height = cameraVideo.videoHeight;
+
+          startCameraBtn.classList.add('hidden');
+          stopCameraBtn.classList.remove('hidden');
+          switchCameraBtn.classList.remove('hidden');
+
+          // Check if torch is supported
+          var track = stream.getVideoTracks()[0];
+          var capabilities = track.getCapabilities ? track.getCapabilities() : {};
+          if (capabilities.torch) {
+            toggleFlashBtn.classList.remove('hidden');
+          }
+
+          scanFrame();
+        } catch (error) {
+          console.error('Camera error:', error);
+          cameraSkeleton.classList.add('hidden');
+          cameraEmpty.classList.remove('hidden');
+          alert(t('cameraError'));
+        }
+      }
+
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach(function(track) {
+            track.stop();
+          });
+          stream = null;
+        }
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+        cameraVideo.classList.add('hidden');
+        cameraEmpty.classList.remove('hidden');
+        startCameraBtn.classList.remove('hidden');
+        stopCameraBtn.classList.add('hidden');
+        switchCameraBtn.classList.add('hidden');
+        toggleFlashBtn.classList.add('hidden');
+      }
+
+      async function switchCamera() {
+        currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+        stopCamera();
+        await startCamera();
+      }
+
+      async function toggleFlash() {
+        if (!stream) return;
+        var track = stream.getVideoTracks()[0];
+        flashOn = !flashOn;
+        try {
+          await track.applyConstraints({
+            advanced: [{ torch: flashOn }]
+          });
+        } catch (error) {
+          console.error('Flash error:', error);
+        }
+      }
+
+      function scanFrame() {
+        if (!stream) return;
+
+        var ctx = cameraCanvas.getContext('2d');
+        cameraCanvas.width = cameraVideo.videoWidth;
+        cameraCanvas.height = cameraVideo.videoHeight;
+
+        ctx.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
+        var imageData = ctx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
+
+        if (typeof jsQR !== 'undefined') {
+          var code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert"
+          });
+
+          if (code) {
+            // Draw green box around QR
+            ctx.strokeStyle = '#22C55E';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(code.location.topLeftCorner.x, code.location.topLeftCorner.y);
+            ctx.lineTo(code.location.topRightCorner.x, code.location.topRightCorner.y);
+            ctx.lineTo(code.location.bottomRightCorner.x, code.location.bottomRightCorner.y);
+            ctx.lineTo(code.location.bottomLeftCorner.x, code.location.bottomLeftCorner.y);
+            ctx.closePath();
+            ctx.stroke();
+
+            // Beep sound
+            playBeep();
+
+            // Show result
+            showResult(code.data);
+
+            // Don't stop camera, but pause scanning for 2 seconds
+            setTimeout(function() {
+              animationFrameId = requestAnimationFrame(scanFrame);
+            }, 2000);
+            return;
+          }
+        }
+
+        animationFrameId = requestAnimationFrame(scanFrame);
+      }
+
+      function playBeep() {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        var oscillator = audioContext.createOscillator();
+        var gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+      }
+
+      // ===== Upload Functions =====
+      function handleFileSelect(file) {
+        if (!file) return;
+        if (!file.type.match('image.*')) return;
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var img = new Image();
+          img.onload = function() {
+            uploadCanvas.width = img.width;
+            uploadCanvas.height = img.height;
+            var ctx = uploadCanvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            uploadPreview.classList.remove('hidden');
+
+            var imageData = ctx.getImageData(0, 0, uploadCanvas.width, uploadCanvas.height);
+            if (typeof jsQR !== 'undefined') {
+              var code = jsQR(imageData.data, imageData.width, imageData.height);
+              if (code) {
+                showResult(code.data);
+              } else {
+                alert(t('noQrFound'));
+              }
+            }
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // Drag & Drop
+      dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.classList.add('border-violet-400', 'dark:border-violet-500');
+      });
+
+      dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('border-violet-400', 'dark:border-violet-500');
+      });
+
+      dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('border-violet-400', 'dark:border-violet-500');
+        var file = e.dataTransfer.files[0];
+        handleFileSelect(file);
+      });
+
+      dropZone.addEventListener('click', function() {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        handleFileSelect(file);
+      });
+
+      // ===== Result Display =====
+      function showResult(data) {
+        resultText.textContent = data;
+
+        // Detect content type
+        var type = detectContentType(data);
+        resultType.textContent = t(type);
+
+        // Hide all action buttons first
+        wifiFields.classList.add('hidden');
+        openLinkBtn.classList.add('hidden');
+        sendEmailBtn.classList.add('hidden');
+        callBtn.classList.add('hidden');
+
+        // Show appropriate action buttons
+        if (type === 'url') {
+          openLinkBtn.href = data;
+          openLinkBtn.classList.remove('hidden');
+        } else if (type === 'email') {
+          var email = data.replace('mailto:', '');
+          sendEmailBtn.href = 'mailto:' + email;
+          sendEmailBtn.classList.remove('hidden');
+        } else if (type === 'phone') {
+          var phone = data.replace('tel:', '');
+          callBtn.href = 'tel:' + phone;
+          callBtn.classList.remove('hidden');
+        } else if (type === 'wifi') {
+          var wifiData = parseWiFi(data);
+          if (wifiData) {
+            wifiSsid.value = wifiData.ssid;
+            wifiPassword.value = wifiData.password;
+            wifiFields.classList.remove('hidden');
+          }
+        }
+
+        // Show result card with animation
+        resultCard.classList.remove('hidden');
+
+        // Add to history
+        addToHistory(data, type);
+      }
+
+      function detectContentType(data) {
+        if (data.startsWith('http://') || data.startsWith('https://')) return 'url';
+        if (data.startsWith('mailto:')) return 'email';
+        if (data.startsWith('tel:')) return 'phone';
+        if (data.startsWith('WIFI:')) return 'wifi';
+        if (data.startsWith('BEGIN:VCARD')) return 'vcard';
+        return 'text';
+      }
+
+      function parseWiFi(data) {
+        // WIFI:S:<SSID>;T:<WPA|WEP|>;P:<password>;H:<true|false|>;
+        var ssidMatch = data.match(/S:([^;]+)/);
+        var passMatch = data.match(/P:([^;]+)/);
+
+        if (ssidMatch) {
+          return {
+            ssid: ssidMatch[1],
+            password: passMatch ? passMatch[1] : ''
+          };
+        }
+        return null;
+      }
+
+      function addToHistory(data, type) {
+        var historyItem = {
+          data: data,
+          type: type,
+          timestamp: new Date().toLocaleTimeString()
+        };
+
+        scanHistory.unshift(historyItem);
+        if (scanHistory.length > 10) {
+          scanHistory.pop();
+        }
+
+        renderHistory();
+      }
+
+      function renderHistory() {
+        if (scanHistory.length === 0) {
+          historyCard.classList.add('hidden');
+          return;
+        }
+
+        historyCard.classList.remove('hidden');
+        historyList.innerHTML = '';
+
+        scanHistory.forEach(function(item, index) {
+          var div = document.createElement('div');
+          div.className = 'p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer';
+          div.innerHTML =
+            '<div class="flex items-start justify-between">' +
+              '<div class="flex-1 min-w-0">' +
+                '<div class="flex items-center gap-2 mb-1">' +
+                  '<span class="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300">' + t(item.type) + '</span>' +
+                  '<span class="text-xs text-gray-400">' + item.timestamp + '</span>' +
+                '</div>' +
+                '<p class="text-sm text-gray-900 dark:text-gray-100 truncate">' + item.data + '</p>' +
+              '</div>' +
+            '</div>';
+
+          div.addEventListener('click', function() {
+            showResult(item.data);
+          });
+
+          historyList.appendChild(div);
+        });
+      }
+
+      // ===== Copy Function =====
+      copyResultBtn.addEventListener('click', function() {
+        navigator.clipboard.writeText(resultText.textContent);
+        var copySpan = copyResultBtn.querySelector('[data-i18n="copyResult"]');
+        if (copySpan) copySpan.textContent = '✓ ' + t('copied');
+        setTimeout(function() {
+          if (copySpan) copySpan.textContent = t('copyResult');
+        }, 2000);
+      });
+
+      scanAgainBtn.addEventListener('click', function() {
+        resultCard.classList.add('hidden');
+      });
+
+      // ===== Event Listeners =====
+      tabCameraBtn.addEventListener('click', function() { switchTab('camera'); });
+      tabUploadBtn.addEventListener('click', function() { switchTab('upload'); });
+
+      startCameraBtn.addEventListener('click', startCamera);
+      stopCameraBtn.addEventListener('click', stopCamera);
+      switchCameraBtn.addEventListener('click', switchCamera);
+      toggleFlashBtn.addEventListener('click', toggleFlash);
+
+      // Language switcher
+      var langEnBtn = document.getElementById('lang-en');
+      var langRuBtn = document.getElementById('lang-ru');
+
+      if (langEnBtn) {
+        langEnBtn.addEventListener('click', function() {
+          setLanguage('en');
+        });
+      }
+
+      if (langRuBtn) {
+        langRuBtn.addEventListener('click', function() {
+          setLanguage('ru');
+        });
+      }
+
+      // Initialize language
+      setLanguage(currentLang);
+    })();
+  </script>
+
+  <style>
+    /* Tab button styles */
+    .tab-button {
+      background: transparent;
+      color: #6b7280;
+    }
+
+    .tab-button.active {
+      background: #8b5cf6;
+      color: white;
+    }
+
+    :global(.dark) .tab-button {
+      color: #9ca3af;
+    }
+
+    :global(.dark) .tab-button.active {
+      background: #7c3aed;
+      color: white;
+    }
+
+    /* Skeleton loader */
+    .skeleton-spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #8b5cf6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    :global(.dark) .skeleton-spinner {
+      border-color: #374151;
+      border-top-color: #7c3aed;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Result card animation */
+    .result-slidedown {
+      animation: slideDown 0.4s ease-out, bounce 0.3s ease-out 0.4s;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+  </style>
+</Layout>
