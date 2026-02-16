@@ -6,7 +6,8 @@ interface Props {
   description?: string;
 }
 
-const { title, description = "Free online developer tools" } = Astro.props;
+const { title, description = "Free online developer tools — Mole's Tools" } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 // Group tools by category
 const categories = toolsData.reduce((acc, tool) => {
@@ -17,7 +18,7 @@ const categories = toolsData.reduce((acc, tool) => {
   return acc;
 }, {} as Record<string, typeof toolsData>);
 
-const contactEmail = "hello@moletools.dev";
+const contactEmail = "hello@moletools.online";
 ---
 
 <!doctype html>
@@ -27,11 +28,22 @@ const contactEmail = "hello@moletools.dev";
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/images/mole/logo.png" />
+    <link rel="canonical" href={canonicalURL} />
 
     <!-- Open Graph Tags -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content="Mole's Tools" />
+    <meta property="og:image" content={new URL('/images/mole/logo.png', Astro.site)} />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL('/images/mole/logo.png', Astro.site)} />
 
     <title>{title}</title>
 

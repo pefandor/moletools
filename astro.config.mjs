@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://moletools.dev',
+  site: 'https://moletools.online',
   integrations: [tailwind(), sitemap()],
   output: 'static',
 });
