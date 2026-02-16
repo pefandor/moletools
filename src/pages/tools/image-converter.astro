@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import FAQ from '../../components/FAQ.astro';
 import toolsData from '../../data/tools.json';
 
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 const tool = toolsData.find(t => t.id === 'image-converter')!;
 
 const jsonLd = {
@@ -191,14 +192,13 @@ const faqJsonLd = {
   </div>
 </Layout>
 
+<script set:html={`window.__API_URL=${JSON.stringify(API_URL)};`}></script>
 <script is:inline>
 (function() {
   // ==========================================
   // API URL
   // ==========================================
-  var API_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:8000'
-    : 'https://api.moletools.dev';
+  var API_URL = window.__API_URL;
 
   // ==========================================
   // DOM Elements

@@ -4,13 +4,11 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "astro dev",
-    "start": "astro dev",
-    "build": "astro check && astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "build": "astro build",
+    "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.7.0",
+    "@astrojs/sitemap": "^3.2.1",
     "@astrojs/tailwind": "^5.1.0",
     "astro": "^4.16.0",
     "qrcode": "^1.5.3",

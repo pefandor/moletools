@@ -201,18 +201,7 @@ const faqJsonLd = tool?.faq ? {
     </div>
 
     <!-- FAQ Section -->
-    {tool?.faq && (
-      <div class="mt-12">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-          Frequently Asked Questions
-        </h2>
-        <div class="space-y-4">
-          {tool.faq.map((item: { question: string; answer: string }) => (
-            <FAQ question={item.question} answer={item.answer} />
-          ))}
-        </div>
-      </div>
-    )}
+    <FAQ items={tool.faq} />
   </div>
 
   <!-- Include jsQR library from CDN -->

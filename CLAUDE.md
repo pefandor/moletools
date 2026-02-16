@@ -1,7 +1,7 @@
 # MoleTools — SEO Tool Network
 
 ## Описание проекта
-Сетка онлайн-инструментов для разработчиков с маскотом-кротом. 22 инструмента: 15 клиентских (работают в браузере) + 7 серверных (отправляют запросы на FastAPI бэкенд).
+Сетка онлайн-инструментов для разработчиков с маскотом-кротом. 35 инструментов: 16 клиентских (работают в браузере) + 19 серверных (отправляют запросы на FastAPI бэкенд).
 
 ## Структура
 
@@ -17,23 +17,38 @@
 ### Backend (C:\sites)
 - **Фреймворк:** Python FastAPI
 - **Главный файл:** main.py
-- **Модули:** tools/ (png_to_webp.py, compress_image.py, qr_generator.py, watermark.py, image_resize.py, webp_to_png.py, pdf_merge.py)
-- **Зависимости:** requirements.txt
-- **Docker:** Dockerfile
+- **Модули:** tools/ (png_to_webp.py, compress_image.py, qr_generator.py, watermark.py, image_resize.py, image_convert.py, webp_to_png.py, pdf_merge.py, pdf_tools.py, temp_mail.py)
+- **Зависимости:** requirements.txt (FastAPI, Pillow, PyPDF2, qrcode, httpx, pdf2image)
+- **Docker:** Dockerfile (python:3.11-slim + poppler-utils)
 
 ## Инструменты
 
 ### Клиентские (без бэкенда)
-JSON Formatter, Base64, UUID, Timestamp, QR Code, Password, Color Picker, Lorem Ipsum, Word Counter, URL Encoder, HTML Entities, Markdown Preview, Hash Generator, Regex Tester, Fake Name Generator
+JSON Formatter, Base64, UUID, Timestamp, QR Code, Password, Color Picker, Lorem Ipsum, Word Counter, URL Encoder, HTML Entities, Markdown Preview, Hash Generator, Regex Tester, Fake Name Generator, Fake IBAN Generator
 
 ### Серверные (FastAPI)
-- POST /convert/png-to-webp
-- POST /convert/webp-to-png
-- POST /compress
-- POST /qr-code
-- POST /watermark (text + image, multi-layer, tiling, rotation, drag positioning)
-- POST /resize
-- POST /pdf/merge
+- POST /convert/png-to-webp — PNG в WebP
+- POST /convert/webp-to-png — WebP в PNG
+- POST /convert/image — универсальный конвертер (PNG, JPG, WebP, BMP, TIFF, GIF, ICO)
+- POST /convert/images-to-pdf — изображения в PDF
+- POST /convert/pdf-to-jpg — PDF в JPG
+- POST /compress — сжатие изображений
+- POST /qr-code — генерация QR-кодов
+- POST /watermark — водяные знаки (text + image, multi-layer, tiling, rotation, drag positioning)
+- POST /resize — изменение размера
+- POST /pdf/merge — объединение PDF
+- POST /pdf/split — разделение PDF
+- POST /pdf/rotate — поворот страниц PDF
+- POST /pdf/delete-pages — удаление страниц PDF
+- POST /pdf/reorder — изменение порядка страниц
+- POST /pdf/protect — шифрование PDF
+- POST /pdf/unlock — снятие пароля PDF
+- GET /tempmail/domains — домены временной почты
+- GET /tempmail/generate — генерация email
+- GET /tempmail/check — проверка входящих
+
+### Хаб-страницы
+- /tools/pdf-tools — хаб всех PDF-инструментов (9 карточек)
 
 ## Правила кода
 - **Клиентские скрипты:** ТОЛЬКО чистый JavaScript. НЕ TypeScript. Никаких 'as', type annotations, интерфейсов в блоках `<script>`.
