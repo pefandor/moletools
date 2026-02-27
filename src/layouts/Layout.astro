@@ -19,6 +19,39 @@ const categories = toolsData.reduce((acc, tool) => {
 }, {} as Record<string, typeof toolsData>);
 
 const contactEmail = "hi_mole@bk.ru";
+
+// Detect current tool for structured data
+const currentPath = Astro.url.pathname.replace(/\/$/, '');
+const currentTool = toolsData.find(t => t.path === currentPath);
+
+const faqSchema = currentTool?.faq?.length ? JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": currentTool.faq.map(f => ({
+    "@type": "Question",
+    "name": f.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": f.answer
+    }
+  }))
+}) : null;
+
+const appSchema = currentTool ? JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": currentTool.name,
+  "description": currentTool.metaDescription,
+  "url": canonicalURL.toString(),
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "aggregateRating": undefined
+}) : null;
 ---
 
 <!doctype html>
@@ -46,6 +79,11 @@ const contactEmail = "hi_mole@bk.ru";
     <meta name="twitter:image" content={new URL('/images/mole/logo.png', Astro.site)} />
 
     <title>{title}</title>
+
+    {/* Structured Data: FAQPage */}
+    {faqSchema && <script type="application/ld+json" set:html={faqSchema} />}
+    {/* Structured Data: SoftwareApplication */}
+    {appSchema && <script type="application/ld+json" set:html={appSchema} />}
 
     <!-- Yandex.Metrika counter -->
     <script is:inline>
