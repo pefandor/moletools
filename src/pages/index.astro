@@ -45,6 +45,17 @@ const categories = tools.reduce((acc, tool) => {
       />
     </div>
 
+    <!-- Recently Used Tools (populated by JS from localStorage) -->
+    <div id="recent-tools-section" class="hidden">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-3xl">🕐</span>
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+          <span data-i18n="recentlyUsed">Recently Used</span>
+        </h2>
+      </div>
+      <div id="recent-tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+
     <!-- Tools by Category -->
     {Object.entries(categories).map(([category, categoryTools]) => (
       <div>
@@ -99,6 +110,38 @@ const categories = tools.reduce((acc, tool) => {
 </Layout>
 
 <script is:inline>
+  // Recently Used Tools
+  (function() {
+    var recent = [];
+    try { recent = JSON.parse(localStorage.getItem('recentTools') || '[]'); } catch(e) {}
+    if (!recent.length) return;
+
+    // Tools data map (path → tool info)
+    var toolCards = document.querySelectorAll('a[href^="/tools/"]');
+    var toolMap = {};
+    toolCards.forEach(function(card) {
+      var href = card.getAttribute('href');
+      toolMap[href] = card.cloneNode(true);
+    });
+
+    var section = document.getElementById('recent-tools-section');
+    var grid = document.getElementById('recent-tools-grid');
+    if (!section || !grid) return;
+
+    var hasCards = false;
+    recent.forEach(function(path) {
+      var card = toolMap[path];
+      if (card) {
+        grid.appendChild(card);
+        hasCards = true;
+      }
+    });
+
+    if (hasCards) {
+      section.classList.remove('hidden');
+    }
+  })();
+
   // Index page translations
   (function() {
     // Add index-specific translations
@@ -114,7 +157,9 @@ const categories = tools.reduce((acc, tool) => {
         clientSide: 'Fast & Secure',
         freeToUse: '100% Free to Use',
         // Splash
-        splashText: 'Loading Mole\'s Tools...'
+        splashText: 'Loading Mole\'s Tools...',
+        // Recent
+        recentlyUsed: 'Recently Used'
       });
 
       MoleI18n.addTranslations('ru', {
@@ -128,7 +173,9 @@ const categories = tools.reduce((acc, tool) => {
         clientSide: 'Быстро и безопасно',
         freeToUse: '100% Бесплатно',
         // Splash
-        splashText: 'Загрузка Mole\'s Tools...'
+        splashText: 'Загрузка Mole\'s Tools...',
+        // Recent
+        recentlyUsed: 'Недавние инструменты'
       });
 
       // Set initial language

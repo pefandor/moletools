@@ -20,6 +20,9 @@ const categories = toolsData.reduce((acc, tool) => {
 
 const contactEmail = "hi_mole@bk.ru";
 
+// Minimal tools data for command palette
+const toolsForPalette = JSON.stringify(toolsData.map(t => ({ name: t.name, icon: t.icon, path: t.path, category: t.category })));
+
 // Detect current tool for structured data
 const currentPath = Astro.url.pathname.replace(/\/$/, '');
 const currentTool = toolsData.find(t => t.path === currentPath);
@@ -61,6 +64,9 @@ const appSchema = currentTool ? JSON.stringify({
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/images/mole/logo.png" />
+    <link rel="apple-touch-icon" href="/images/mole/logo.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#d97706" />
     <link rel="canonical" href={canonicalURL} />
 
     <!-- Open Graph Tags -->
@@ -106,11 +112,11 @@ const appSchema = currentTool ? JSON.stringify({
       gtag('config', 'G-QHTPJW3EC9');
     </script>
 
-    <!-- Dark mode: apply before render to prevent flash -->
+    <!-- Dark mode: apply before render to prevent flash (dark by default) -->
     <script is:inline>
       (function() {
         var theme = localStorage.getItem('theme');
-        if (theme === 'dark') {
+        if (theme !== 'light') {
           document.documentElement.classList.add('dark');
         }
       })();
@@ -244,6 +250,35 @@ const appSchema = currentTool ? JSON.stringify({
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
       <slot />
     </main>
+
+    <!-- Command Palette (Ctrl+K or /) -->
+    <div id="cmd-palette" class="fixed inset-0 z-[100] hidden">
+      <div id="cmd-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="relative flex justify-center pt-[15vh] px-4">
+        <div class="w-full max-w-xl bg-gray-900 rounded-xl shadow-2xl border border-gray-700 overflow-hidden">
+          <div class="flex items-center px-4 py-3 border-b border-gray-700">
+            <svg class="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              id="cmd-input"
+              type="text"
+              data-i18n-placeholder="cmdPlaceholder"
+              placeholder="Search tools..."
+              class="flex-1 bg-transparent text-gray-100 text-base placeholder-gray-500 outline-none"
+              autocomplete="off"
+            />
+            <kbd class="hidden sm:inline-block px-2 py-0.5 text-xs text-gray-500 bg-gray-800 rounded border border-gray-700 ml-2">ESC</kbd>
+          </div>
+          <div id="cmd-results" class="max-h-80 overflow-y-auto py-2"></div>
+          <div class="px-4 py-2 border-t border-gray-700 flex items-center gap-4 text-xs text-gray-500">
+            <span><kbd class="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-700">↑↓</kbd> navigate</span>
+            <span><kbd class="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-700">↵</kbd> open</span>
+            <span><kbd class="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-700">esc</kbd> close</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -381,6 +416,8 @@ const appSchema = currentTool ? JSON.stringify({
         </div>
       </div>
     </footer>
+    <!-- Tools data for command palette -->
+    <script type="application/json" id="cmd-tools-data" set:html={toolsForPalette} />
     <!-- i18n translations script -->
     <script is:inline src="/scripts/i18n.js"></script>
     <script is:inline>
@@ -403,7 +440,8 @@ const appSchema = currentTool ? JSON.stringify({
           contactUs: 'Contact us at',
           supportMoletools: 'Support Mole\'s Tools',
           helpKeepFree: 'Help keep our tools free and ad-free',
-          copyright: '© ' + new Date().getFullYear() + ' Mole\'s Tools. Free online tools for developers. All rights reserved.'
+          copyright: '© ' + new Date().getFullYear() + ' Mole\'s Tools. Free online tools for developers. All rights reserved.',
+          cmdPlaceholder: 'Search tools...'
         });
 
         MoleI18n.addTranslations('ru', {
@@ -422,7 +460,8 @@ const appSchema = currentTool ? JSON.stringify({
           contactUs: 'Свяжитесь с нами',
           supportMoletools: 'Поддержать Mole\'s Tools',
           helpKeepFree: 'Помогите сохранить инструменты бесплатными',
-          copyright: '© ' + new Date().getFullYear() + ' Mole\'s Tools. Бесплатные онлайн-инструменты для разработчиков. Все права защищены.'
+          copyright: '© ' + new Date().getFullYear() + ' Mole\'s Tools. Бесплатные онлайн-инструменты для разработчиков. Все права защищены.',
+          cmdPlaceholder: 'Поиск инструментов...'
         });
 
         // Update language buttons styling
@@ -482,7 +521,7 @@ const appSchema = currentTool ? JSON.stringify({
         }
       })();
 
-      // Dark mode toggle
+      // Dark mode toggle (dark by default)
       (function() {
         var html = document.documentElement;
         var isDark = html.classList.contains('dark');
@@ -614,6 +653,124 @@ const appSchema = currentTool ? JSON.stringify({
               });
             }
           });
+        });
+      })();
+    </script>
+    <script is:inline>
+      // Track recently used tools (runs on every page)
+      (function() {
+        var path = window.location.pathname.replace(/\/$/, '');
+        if (path.startsWith('/tools/')) {
+          var recent = [];
+          try { recent = JSON.parse(localStorage.getItem('recentTools') || '[]'); } catch(e) {}
+          recent = recent.filter(function(p) { return p !== path; });
+          recent.unshift(path);
+          if (recent.length > 5) recent = recent.slice(0, 5);
+          localStorage.setItem('recentTools', JSON.stringify(recent));
+        }
+      })();
+
+      // Register service worker for PWA
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(function() {});
+      }
+
+      // Command Palette (Ctrl+K or /)
+      (function() {
+        var palette = document.getElementById('cmd-palette');
+        var overlay = document.getElementById('cmd-overlay');
+        var input = document.getElementById('cmd-input');
+        var results = document.getElementById('cmd-results');
+        if (!palette || !input || !results) return;
+
+        var dataEl = document.getElementById('cmd-tools-data');
+        if (!dataEl) return;
+        var tools = JSON.parse(dataEl.textContent);
+        var selectedIndex = -1;
+
+        function openPalette() {
+          palette.classList.remove('hidden');
+          input.value = '';
+          selectedIndex = -1;
+          renderResults(tools);
+          setTimeout(function() { input.focus(); }, 50);
+        }
+
+        function closePalette() {
+          palette.classList.add('hidden');
+          input.value = '';
+        }
+
+        function renderResults(list) {
+          results.innerHTML = '';
+          selectedIndex = list.length > 0 ? 0 : -1;
+          list.forEach(function(tool, i) {
+            var div = document.createElement('a');
+            div.href = tool.path;
+            div.className = 'cmd-item flex items-center gap-3 px-4 py-2.5 cursor-pointer text-gray-300 hover:bg-gray-800 transition-colors';
+            if (i === 0) div.classList.add('bg-gray-800', 'text-white');
+            div.innerHTML = '<span class="text-xl flex-shrink-0">' + tool.icon + '</span>' +
+              '<span class="flex-1 text-sm font-medium">' + tool.name + '</span>' +
+              '<span class="text-xs text-gray-500">' + tool.category + '</span>';
+            results.appendChild(div);
+          });
+        }
+
+        function updateSelection() {
+          var items = results.querySelectorAll('.cmd-item');
+          items.forEach(function(item, i) {
+            if (i === selectedIndex) {
+              item.classList.add('bg-gray-800', 'text-white');
+              item.classList.remove('text-gray-300');
+              item.scrollIntoView({ block: 'nearest' });
+            } else {
+              item.classList.remove('bg-gray-800', 'text-white');
+              item.classList.add('text-gray-300');
+            }
+          });
+        }
+
+        input.addEventListener('input', function() {
+          var q = input.value.toLowerCase().trim();
+          var filtered = q ? tools.filter(function(t) {
+            return t.name.toLowerCase().includes(q) || t.category.toLowerCase().includes(q);
+          }) : tools;
+          renderResults(filtered);
+        });
+
+        input.addEventListener('keydown', function(e) {
+          var items = results.querySelectorAll('.cmd-item');
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+            updateSelection();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, 0);
+            updateSelection();
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (items[selectedIndex]) items[selectedIndex].click();
+          } else if (e.key === 'Escape') {
+            closePalette();
+          }
+        });
+
+        overlay.addEventListener('click', closePalette);
+
+        document.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            openPalette();
+            return;
+          }
+          if (e.key === '/' && palette.classList.contains('hidden')) {
+            var tag = document.activeElement ? document.activeElement.tagName : '';
+            if (tag !== 'INPUT' && tag !== 'TEXTAREA' && !(document.activeElement && document.activeElement.isContentEditable)) {
+              e.preventDefault();
+              openPalette();
+            }
+          }
         });
       })();
     </script>
