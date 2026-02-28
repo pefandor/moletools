@@ -1,0 +1,33 @@
+name: Deploy Frontend to VPS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'astro.config.mjs'
+      - 'tailwind.config.mjs'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd /opt/moletools
+            git pull origin main
+            if [ ! -f .env ]; then
+              echo 'PUBLIC_API_URL=https://api.moletools.online' > .env
+            fi
+            npm ci
+            npm run build
+            echo "Frontend deploy completed at $(date)"
