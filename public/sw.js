@@ -1,4 +1,4 @@
-var CACHE_NAME = 'moletools-v1';
+var CACHE_NAME = 'moletools-v2';
 var STATIC_ASSETS = [
   '/',
   '/images/mole/logo.png',
