@@ -35,14 +35,36 @@ const categories = tools.reduce((acc, tool) => {
       </div>
     </div>
 
-    <!-- Search (placeholder for future enhancement) -->
+    <!-- Search -->
     <div class="max-w-md mx-auto">
-      <input
-        type="text"
-        id="toolSearch"
-        data-i18n-placeholder="searchTools"
-        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-      />
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input
+          type="text"
+          id="toolSearch"
+          data-i18n-placeholder="searchTools"
+          class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        />
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div id="no-results" class="hidden text-center py-12">
+      <img src="/images/mole/hero.png" alt="No results" class="h-24 mx-auto mb-4 opacity-50" />
+      <p class="text-lg text-gray-500 dark:text-gray-400">
+        <span data-i18n="noResults">No tools found</span>
+      </p>
+    </div>
+
+    <!-- Favorite Tools (populated by JS from localStorage) -->
+    <div id="fav-tools-section" class="hidden reveal-section">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-3xl">⭐</span>
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+          <span data-i18n="favorites">Favorites</span>
+        </h2>
+      </div>
+      <div id="fav-tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
 
     <!-- Recently Used Tools (populated by JS from localStorage) -->
@@ -63,7 +85,7 @@ const categories = tools.reduce((acc, tool) => {
           <img
             src={`/images/mole/${category}.png`}
             alt={`${category} Mole`}
-            class="h-14 w-auto"
+            class="h-14 w-auto category-mole"
           />
           <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
             <span data-i18n={category.toLowerCase()}>{category}</span>
@@ -110,36 +132,40 @@ const categories = tools.reduce((acc, tool) => {
 </Layout>
 
 <script is:inline>
-  // Recently Used Tools
+  // Build tool card map for favorites & recently used
   (function() {
-    var recent = [];
-    try { recent = JSON.parse(localStorage.getItem('recentTools') || '[]'); } catch(e) {}
-    if (!recent.length) return;
-
-    // Tools data map (path → tool info)
-    var toolCards = document.querySelectorAll('a[href^="/tools/"]');
+    var toolCards = document.querySelectorAll('a[data-tool-path]');
     var toolMap = {};
     toolCards.forEach(function(card) {
-      var href = card.getAttribute('href');
-      toolMap[href] = card.cloneNode(true);
+      var href = card.getAttribute('data-tool-path');
+      if (href) toolMap[href] = card;
     });
 
-    var section = document.getElementById('recent-tools-section');
-    var grid = document.getElementById('recent-tools-grid');
-    if (!section || !grid) return;
-
-    var hasCards = false;
-    recent.forEach(function(path) {
-      var card = toolMap[path];
-      if (card) {
-        grid.appendChild(card);
-        hasCards = true;
-      }
-    });
-
-    if (hasCards) {
-      section.classList.remove('hidden');
+    function populateSection(sectionId, gridId, paths) {
+      if (!paths.length) return;
+      var section = document.getElementById(sectionId);
+      var grid = document.getElementById(gridId);
+      if (!section || !grid) return;
+      var hasCards = false;
+      paths.forEach(function(path) {
+        var card = toolMap[path];
+        if (card) {
+          grid.appendChild(card.cloneNode(true));
+          hasCards = true;
+        }
+      });
+      if (hasCards) section.classList.remove('hidden');
     }
+
+    // Favorites
+    var favs = [];
+    try { favs = JSON.parse(localStorage.getItem('favoriteTools') || '[]'); } catch(e) {}
+    populateSection('fav-tools-section', 'fav-tools-grid', favs);
+
+    // Recently Used
+    var recent = [];
+    try { recent = JSON.parse(localStorage.getItem('recentTools') || '[]'); } catch(e) {}
+    populateSection('recent-tools-section', 'recent-tools-grid', recent);
   })();
 
   // Index page translations
@@ -158,8 +184,10 @@ const categories = tools.reduce((acc, tool) => {
         freeToUse: '100% Free to Use',
         // Splash
         splashText: 'Loading Mole\'s Tools...',
-        // Recent
-        recentlyUsed: 'Recently Used'
+        // Recent & Favorites
+        recentlyUsed: 'Recently Used',
+        favorites: 'Favorites',
+        noResults: 'No tools found'
       });
 
       MoleI18n.addTranslations('ru', {
@@ -174,8 +202,10 @@ const categories = tools.reduce((acc, tool) => {
         freeToUse: '100% Бесплатно',
         // Splash
         splashText: 'Загрузка Mole\'s Tools...',
-        // Recent
-        recentlyUsed: 'Недавние инструменты'
+        // Recent & Favorites
+        recentlyUsed: 'Недавние инструменты',
+        favorites: 'Избранное',
+        noResults: 'Инструменты не найдены'
       });
 
       // Set initial language
@@ -225,9 +255,6 @@ const categories = tools.reduce((acc, tool) => {
     var sections = document.querySelectorAll('.reveal-section');
     if (!sections.length) return;
 
-    // Respect reduced motion
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
     // Set initial hidden state
     sections.forEach(function(el) {
       el.style.opacity = '0';
@@ -263,22 +290,73 @@ const categories = tools.reduce((acc, tool) => {
     sections.forEach(function(el) { observer.observe(el); });
   })();
 
-  // Simple search functionality
-  var searchInput = document.getElementById('toolSearch');
-  if (searchInput) {
-    searchInput.addEventListener('input', function(e) {
-      var searchTerm = e.target.value.toLowerCase();
-      var toolCards = document.querySelectorAll('a[href^="/tools/"]');
+  // Search with highlighting and no-results
+  (function() {
+    var searchInput = document.getElementById('toolSearch');
+    var noResults = document.getElementById('no-results');
+    if (!searchInput) return;
 
-      toolCards.forEach(function(card) {
-        var text = card.textContent ? card.textContent.toLowerCase() : '';
-        var parent = card.parentElement;
-        if (text.includes(searchTerm)) {
-          card.classList.remove('hidden');
-        } else {
-          card.classList.add('hidden');
-        }
+    // Store original text for each card
+    var toolCards = document.querySelectorAll('a[data-tool-path]');
+    var cardData = [];
+    toolCards.forEach(function(card) {
+      var h3 = card.querySelector('h3');
+      var p = card.querySelector('p');
+      cardData.push({
+        el: card,
+        h3: h3,
+        p: p,
+        origName: h3 ? h3.textContent : '',
+        origDesc: p ? p.textContent : ''
       });
     });
-  }
+
+    function highlightText(text, term) {
+      if (!term) return text;
+      var regex = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return text.replace(regex, '<mark class="bg-amber-300/40 dark:bg-amber-500/30 text-inherit rounded px-0.5">$1</mark>');
+    }
+
+    searchInput.addEventListener('input', function(e) {
+      var term = e.target.value.toLowerCase().trim();
+      var visibleCount = 0;
+
+      cardData.forEach(function(data) {
+        var nameMatch = data.origName.toLowerCase().includes(term);
+        var descMatch = data.origDesc.toLowerCase().includes(term);
+        if (!term || nameMatch || descMatch) {
+          data.el.classList.remove('hidden');
+          visibleCount++;
+          if (term && data.h3) data.h3.innerHTML = highlightText(data.origName, term);
+          if (term && data.p) data.p.innerHTML = highlightText(data.origDesc, term);
+          if (!term) {
+            if (data.h3) data.h3.textContent = data.origName;
+            if (data.p) data.p.textContent = data.origDesc;
+          }
+        } else {
+          data.el.classList.add('hidden');
+        }
+      });
+
+      // Show/hide category headers
+      var sections = document.querySelectorAll('.reveal-section');
+      sections.forEach(function(section) {
+        var visibleCards = section.querySelectorAll('a[data-tool-path]:not(.hidden)');
+        if (term && visibleCards.length === 0) {
+          section.style.display = 'none';
+        } else {
+          section.style.display = '';
+        }
+      });
+
+      // No results
+      if (noResults) {
+        if (term && visibleCount === 0) {
+          noResults.classList.remove('hidden');
+        } else {
+          noResults.classList.add('hidden');
+        }
+      }
+    });
+  })();
 </script>
