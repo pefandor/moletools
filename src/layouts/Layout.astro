@@ -21,7 +21,7 @@ const categories = toolsData.reduce((acc, tool) => {
 const contactEmail = "hi_mole@bk.ru";
 
 // Minimal tools data for command palette
-const toolsForPalette = JSON.stringify(toolsData.map(t => ({ name: t.name, icon: t.icon, path: t.path, category: t.category })));
+const toolsForPalette = JSON.stringify(toolsData.map(t => ({ name: t.name, icon: t.icon, path: t.path, category: t.category, description: t.description })));
 
 // Detect current tool for structured data
 const currentPath = Astro.url.pathname.replace(/\/$/, '');
@@ -123,12 +123,12 @@ const appSchema = currentTool ? JSON.stringify({
     </script>
   </head>
   <body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col transition-colors">
-    <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+    <nav id="main-nav" class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
             <a href="/" id="logo-link" class="flex items-center gap-2 text-xl font-bold text-primary-600 hover:text-primary-700">
-              <img src="/images/mole/logo.png" alt="Mole Logo" class="h-9" />
+              <img src="/images/mole/logo.png" alt="Mole Logo" class="h-9 logo-img" />
               <span>Mole's Tools</span>
             </a>
           </div>
@@ -675,6 +675,28 @@ const appSchema = currentTool ? JSON.stringify({
         navigator.serviceWorker.register('/sw.js').catch(function() {});
       }
 
+      // Пункт 1: Sticky header scroll effect
+      (function() {
+        var nav = document.getElementById('main-nav');
+        if (!nav) return;
+        var ticking = false;
+        function onScroll() {
+          if (!ticking) {
+            requestAnimationFrame(function() {
+              if (window.scrollY > 10) {
+                nav.classList.add('scrolled');
+              } else {
+                nav.classList.remove('scrolled');
+              }
+              ticking = false;
+            });
+            ticking = true;
+          }
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      })();
+
       // Command Palette (Ctrl+K or /)
       (function() {
         var palette = document.getElementById('cmd-palette');
@@ -688,11 +710,27 @@ const appSchema = currentTool ? JSON.stringify({
         var tools = JSON.parse(dataEl.textContent);
         var selectedIndex = -1;
 
+        function getRecentPaths() {
+          try { return JSON.parse(localStorage.getItem('recentTools') || '[]'); } catch(e) { return []; }
+        }
+
         function openPalette() {
           palette.classList.remove('hidden');
           input.value = '';
           selectedIndex = -1;
-          renderResults(tools);
+          var recent = getRecentPaths();
+          var sorted = tools.slice();
+          if (recent.length > 0) {
+            sorted.sort(function(a, b) {
+              var aIdx = recent.indexOf(a.path);
+              var bIdx = recent.indexOf(b.path);
+              if (aIdx !== -1 && bIdx === -1) return -1;
+              if (aIdx === -1 && bIdx !== -1) return 1;
+              if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+              return 0;
+            });
+          }
+          renderResults(sorted, recent);
           setTimeout(function() { input.focus(); }, 50);
         }
 
@@ -701,17 +739,25 @@ const appSchema = currentTool ? JSON.stringify({
           input.value = '';
         }
 
-        function renderResults(list) {
+        function renderResults(list, recent) {
           results.innerHTML = '';
           selectedIndex = list.length > 0 ? 0 : -1;
+          recent = recent || getRecentPaths();
           list.forEach(function(tool, i) {
             var div = document.createElement('a');
             div.href = tool.path;
             div.className = 'cmd-item flex items-center gap-3 px-4 py-2.5 cursor-pointer text-gray-300 hover:bg-gray-800 transition-colors';
             if (i === 0) div.classList.add('bg-gray-800', 'text-white');
+            var isRecent = recent.indexOf(tool.path) !== -1;
+            var badge = isRecent ? '<span class="text-[10px] px-1.5 py-0.5 bg-amber-600/20 text-amber-400 rounded ml-1.5">Recent</span>' : '';
             div.innerHTML = '<span class="text-xl flex-shrink-0">' + tool.icon + '</span>' +
-              '<span class="flex-1 text-sm font-medium">' + tool.name + '</span>' +
-              '<span class="text-xs text-gray-500">' + tool.category + '</span>';
+              '<div class="flex-1 min-w-0">' +
+                '<div class="flex items-center">' +
+                  '<span class="text-sm font-medium truncate">' + tool.name + '</span>' + badge +
+                '</div>' +
+                '<p class="text-xs text-gray-500 truncate mt-0.5">' + (tool.description || '') + '</p>' +
+              '</div>' +
+              '<span class="text-xs text-gray-500 flex-shrink-0">' + tool.category + '</span>';
             results.appendChild(div);
           });
         }
@@ -732,10 +778,26 @@ const appSchema = currentTool ? JSON.stringify({
 
         input.addEventListener('input', function() {
           var q = input.value.toLowerCase().trim();
-          var filtered = q ? tools.filter(function(t) {
-            return t.name.toLowerCase().includes(q) || t.category.toLowerCase().includes(q);
-          }) : tools;
-          renderResults(filtered);
+          var recent = getRecentPaths();
+          if (!q) {
+            var sorted = tools.slice();
+            if (recent.length > 0) {
+              sorted.sort(function(a, b) {
+                var aIdx = recent.indexOf(a.path);
+                var bIdx = recent.indexOf(b.path);
+                if (aIdx !== -1 && bIdx === -1) return -1;
+                if (aIdx === -1 && bIdx !== -1) return 1;
+                if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                return 0;
+              });
+            }
+            renderResults(sorted, recent);
+          } else {
+            var filtered = tools.filter(function(t) {
+              return t.name.toLowerCase().includes(q) || t.category.toLowerCase().includes(q) || (t.description && t.description.toLowerCase().includes(q));
+            });
+            renderResults(filtered, recent);
+          }
         });
 
         input.addEventListener('keydown', function(e) {
@@ -774,6 +836,57 @@ const appSchema = currentTool ? JSON.stringify({
         });
       })();
     </script>
+
+    <!-- Пункт 5: Toast notification system -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[200] flex flex-col gap-2 pointer-events-none" style="max-width: 380px;"></div>
+    <script is:inline>
+      (function() {
+        var container = document.getElementById('toast-container');
+        if (!container) return;
+
+        function createToast(message, type) {
+          var toast = document.createElement('div');
+          toast.style.pointerEvents = 'auto';
+
+          var baseClasses = 'flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border text-sm font-medium transition-all duration-300';
+          var typeClasses = {
+            error: 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700 text-red-800 dark:text-red-300',
+            success: 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300',
+            info: 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300'
+          };
+          var icons = {
+            error: '<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+            success: '<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+            info: '<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+          };
+
+          toast.className = baseClasses + ' ' + (typeClasses[type] || typeClasses.info);
+          toast.innerHTML = (icons[type] || icons.info) + '<span>' + message + '</span>';
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateX(100%)';
+          container.appendChild(toast);
+
+          requestAnimationFrame(function() {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+          });
+
+          setTimeout(function() {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(function() {
+              if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 300);
+          }, 3000);
+        }
+
+        window.MoleToast = {
+          error: function(msg) { createToast(msg, 'error'); },
+          success: function(msg) { createToast(msg, 'success'); },
+          info: function(msg) { createToast(msg, 'info'); }
+        };
+      })();
+    </script>
   </body>
 </html>
 
@@ -794,5 +907,63 @@ const appSchema = currentTool ? JSON.stringify({
     50% {
       transform: translate(-50%, -50%) translateY(-20px);
     }
+  }
+
+  /* Pункт 1: Sticky header scroll effect */
+  #main-nav {
+    transition: background-color 0.2s, box-shadow 0.2s, backdrop-filter 0.2s;
+  }
+  #main-nav.scrolled {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background-color: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  :global(.dark) #main-nav.scrolled {
+    background-color: rgba(31, 41, 55, 0.85);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Пункт 3: Logo wiggle on hover */
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    15% { transform: rotate(-12deg); }
+    30% { transform: rotate(10deg); }
+    45% { transform: rotate(-8deg); }
+    60% { transform: rotate(6deg); }
+    75% { transform: rotate(-3deg); }
+    90% { transform: rotate(2deg); }
+  }
+  #logo-link:hover .logo-img {
+    animation: wiggle 0.6s ease-in-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #logo-link:hover .logo-img {
+      animation: none;
+    }
+  }
+
+  /* Пункт 7: Reusable drop zone styles */
+  .mole-dropzone {
+    border-width: 2px;
+    border-style: dashed;
+    border-color: #D1D5DB;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    text-align: center;
+    transition: border-color 0.2s, background-color 0.2s;
+  }
+  :global(.dark) .mole-dropzone {
+    border-color: #4B5563;
+  }
+  .mole-dropzone:hover,
+  .mole-dropzone.drag-active {
+    border-color: #D97706;
+    background-color: rgba(217, 119, 6, 0.05);
+  }
+  :global(.dark) .mole-dropzone:hover,
+  :global(.dark) .mole-dropzone.drag-active {
+    border-color: #F59E0B;
+    background-color: rgba(217, 119, 6, 0.08);
   }
 </style>
