@@ -58,18 +58,20 @@ const colors = categoryColors[category] || categoryColors['Generator'];
   .tool-card.border-blue-600 {
     border-left-color: #2563EB;
   }
+</style>
 
+<style is:global>
   /* Category-tinted hover shadows in dark mode */
-  :global(.dark) .tool-card.border-emerald-600:hover {
+  .dark .tool-card.border-emerald-600:hover {
     box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   }
-  :global(.dark) .tool-card.border-violet-600:hover {
+  .dark .tool-card.border-violet-600:hover {
     box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   }
-  :global(.dark) .tool-card.border-amber-600:hover {
+  .dark .tool-card.border-amber-600:hover {
     box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   }
-  :global(.dark) .tool-card.border-blue-600:hover {
+  .dark .tool-card.border-blue-600:hover {
     box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   }
 </style>

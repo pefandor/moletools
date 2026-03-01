@@ -908,23 +908,25 @@ const appSchema = currentTool ? JSON.stringify({
       transform: translate(-50%, -50%) translateY(-20px);
     }
   }
+</style>
 
-  /* Pункт 1: Sticky header scroll effect */
+<style is:global>
+  /* Sticky header scroll effect */
   #main-nav {
     transition: background-color 0.2s, box-shadow 0.2s, backdrop-filter 0.2s;
   }
   #main-nav.scrolled {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    background-color: rgba(255, 255, 255, 0.85);
+    background-color: rgba(255, 255, 255, 0.85) !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   }
-  :global(.dark) #main-nav.scrolled {
-    background-color: rgba(31, 41, 55, 0.85);
+  .dark #main-nav.scrolled {
+    background-color: rgba(31, 41, 55, 0.85) !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
-  /* Пункт 3: Logo wiggle on hover */
+  /* Logo wiggle on hover */
   @keyframes wiggle {
     0%, 100% { transform: rotate(0deg); }
     15% { transform: rotate(-12deg); }
@@ -943,7 +945,7 @@ const appSchema = currentTool ? JSON.stringify({
     }
   }
 
-  /* Пункт 7: Reusable drop zone styles */
+  /* Reusable drop zone styles */
   .mole-dropzone {
     border-width: 2px;
     border-style: dashed;
@@ -953,7 +955,7 @@ const appSchema = currentTool ? JSON.stringify({
     text-align: center;
     transition: border-color 0.2s, background-color 0.2s;
   }
-  :global(.dark) .mole-dropzone {
+  .dark .mole-dropzone {
     border-color: #4B5563;
   }
   .mole-dropzone:hover,
@@ -961,8 +963,8 @@ const appSchema = currentTool ? JSON.stringify({
     border-color: #D97706;
     background-color: rgba(217, 119, 6, 0.05);
   }
-  :global(.dark) .mole-dropzone:hover,
-  :global(.dark) .mole-dropzone.drag-active {
+  .dark .mole-dropzone:hover,
+  .dark .mole-dropzone.drag-active {
     border-color: #F59E0B;
     background-color: rgba(217, 119, 6, 0.08);
   }
